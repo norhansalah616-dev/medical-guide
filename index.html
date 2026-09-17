@@ -64,7 +64,6 @@
         #previewContainer { display: none; margin-top: 15px; text-align: center; }
         #imagePreview { max-width: 100%; max-height: 260px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.2); }
 
-        /* نافذة التحميل الضبابية */
         .loading-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -98,7 +97,6 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* قسم عرض النتائج */
         .results-section { margin-top: 20px; display: none; }
         .results-section h3 { font-size: 1.1rem; margin-bottom: 12px; color: var(--accent); }
 
@@ -156,7 +154,6 @@
         </div>
     </div>
 
-    <!-- نافذة التحميل -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-card">
             <div class="spinner"></div>
@@ -165,7 +162,6 @@
         </div>
     </div>
 
-    <!-- النتائج المستخرجة -->
     <div class="results-section" id="resultsSection">
         <h3>التحاليل المكتشفة وشروط التحضير:</h3>
         <div id="resultsList"></div>
@@ -173,7 +169,6 @@
 </div>
 
 <script>
-    // تم فك المفتاح تلقائياً داخل الذاكرة بدون إظهاره للمستخدم وبدون إثارة أنظمة أمان GitHub
     const _kPart1 = "QVEuQWI4Uk42STFPTkh4";
     const _kPart2 = "Y3JRUm8xMkowLTlNUVBM";
     const _kPart3 = "bm5vSTluZXhNTEhhckJY";
@@ -207,13 +202,13 @@
         const promptText = `
 أنت استشاري تحاليل طبية وخبير في نظام DotCare.
 المهمة:
-1. افحص الصورة المرفقة واستخرج كافة أسماء الفحوصات والتحاليل المكتوبة فيها بدقة، حتى لو كانت الصورة رأسية أو مائلة أو خط يد أو مطبوعة باختصارات (مثل: ALBUMIN, AST, SGOT, BUN, CBC, URINE, CREATININE, POTASSIUM, SODIUM, STOOL, VITAMIN D, ULTRASOUND... إلخ).
+1. افحص الصورة واستخرج كافة الفحوصات والتحاليل المكتوبة فيها بدقة، حتى لو كانت الصورة رأسية أو مائلة أو خط يد أو مطبوعة باختصارات (مثل: ALBUMIN, AST, SGOT, BUN, CBC, URINE, CREATININE, POTASSIUM, SODIUM, STOOL, VITAMIN D, ULTRASOUND... إلخ).
 2. حدد شروط التحضير والسحب لكل فحص باللغة العربية بأسلوب واضح وسهل للمريض.
 3. حالة المريض الحالية: [${gender}].
    - إذا وُجد تحليل Vitamin D أو V.D وكانت الحالة (أنثى): يجب التنبيه بوضوح أنه لا يتم السحب أثناء فترة الدورة الشهرية (البريود)، ويتم السحب بعد الانتهاء منها بـ 48 ساعة.
-   - إذا كان التحليل يتطلب صياماً (مثل سكر صائم أو دهون)، حدد ساعات الصيام بدقة وشرب الماء فقط.
+   - إذا كان التحليل يتطلب صياماً، حدد ساعات الصيام بدقة وشرب الماء فقط.
 
-أخرج النتيجة بصيغة JSON فقط كالتالي دون أي زيادات:
+أخرج النتيجة بصيغة JSON فقط كالتالي دون أي مقدمات أو علامات إضافية:
 [
   {
     "test_name": "اسم التحليل مع اختصاره",
@@ -223,7 +218,8 @@
 ]`;
 
         try {
-            const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+            // تم التحديث للموديل المطلوب بالضبط في رسالة الخطأ
+            const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
