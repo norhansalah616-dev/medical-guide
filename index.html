@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الماسح الذكي لروشتات التحاليل الطبية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <!-- مكتبة Tesseract.js للتعرف الضوئي على النصوص (OCR) بدون بايثون أو سيرفرات -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 
     <style>
@@ -18,12 +17,7 @@
             --text-sub: #b2dfdb;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Cairo', sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
 
         body {
             background: var(--bg-gradient);
@@ -32,110 +26,93 @@
             padding: 20px 15px 60px;
         }
 
-        .container {
-            max-width: 550px;
-            margin: 0 auto;
-        }
+        .container { max-width: 550px; margin: 0 auto; }
 
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+        header { text-align: center; margin-bottom: 20px; }
+        header h1 { font-size: 1.35rem; font-weight: 800; margin-bottom: 5px; }
+        header p { font-size: 0.85rem; color: var(--text-sub); }
 
-        header h1 {
-            font-size: 1.4rem;
-            font-weight: 800;
-            margin-bottom: 5px;
-        }
-
-        header p {
-            font-size: 0.85rem;
-            color: var(--text-sub);
-        }
-
-        /* بطاقة التحكم واختيار البيانات */
         .controls-card {
             background: var(--card-bg);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
-            padding: 18px;
+            padding: 16px;
             margin-bottom: 20px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        }
-
-        .gender-select {
-            margin-bottom: 15px;
-        }
-
-        .gender-select label {
-            display: block;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-            font-weight: 600;
         }
 
         .gender-options {
             display: flex;
             gap: 15px;
+            margin-bottom: 14px;
         }
 
         .gender-options label {
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             cursor: pointer;
         }
 
-        /* أزرار الكاميرا والرفع */
         .upload-area {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
         .btn-action {
             background-color: var(--primary);
             color: #00332c;
             border: none;
-            padding: 12px;
+            padding: 11px;
             border-radius: 10px;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             font-weight: 700;
             cursor: pointer;
             text-align: center;
             display: block;
             width: 100%;
-            transition: 0.2s;
         }
 
-        .btn-action:hover {
-            opacity: 0.9;
-        }
+        input[type="file"] { display: none; }
 
-        input[type="file"] {
+        /* منطقة معاينة وتدوير الصورة */
+        #previewContainer {
             display: none;
-        }
-
-        /* معاينة الصورة */
-        #imagePreview {
-            width: 100%;
-            max-height: 250px;
-            object-fit: contain;
-            border-radius: 12px;
             margin-top: 15px;
-            display: none;
+            text-align: center;
+        }
+
+        #imagePreview {
+            max-width: 100%;
+            max-height: 280px;
+            border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* شاشة التحميل المعتمة (Blur Loading) */
+        .rotate-toolbar {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .btn-small {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        /* شاشة التحميل المشوشة */
         .loading-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(10, 25, 30, 0.8);
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 25, 30, 0.82);
             backdrop-filter: blur(8px);
             display: none;
             justify-content: center;
@@ -144,9 +121,9 @@
         }
 
         .loading-card {
-            background: rgba(12, 30, 38, 0.9);
+            background: rgba(12, 30, 38, 0.95);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 25px 35px;
+            padding: 24px 30px;
             border-radius: 20px;
             text-align: center;
             display: flex;
@@ -156,74 +133,51 @@
         }
 
         .spinner {
-            width: 50px;
-            height: 50px;
+            width: 46px; height: 46px;
             border: 5px solid rgba(255, 255, 255, 0.2);
             border-top: 5px solid var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* قسم النتائج والتعليمات المستخرجة */
-        .results-section {
-            margin-top: 20px;
-            display: none;
-        }
-
-        .results-section h3 {
-            font-size: 1.1rem;
-            margin-bottom: 12px;
-            color: var(--accent);
-        }
+        /* نتائج الفحص */
+        .results-section { margin-top: 20px; display: none; }
+        .results-section h3 { font-size: 1.05rem; margin-bottom: 12px; color: var(--accent); }
 
         .test-result-card {
             background: #ffffff;
             color: #263238;
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 12px;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
             border-right: 6px solid var(--primary);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
         }
 
-        .test-result-card.warning-female {
-            border-right-color: #e91e63;
-        }
-
-        .test-result-card h4 {
-            color: #00796b;
-            font-size: 1rem;
-            margin-bottom: 6px;
-        }
-
-        .test-result-card p {
-            font-size: 0.88rem;
-            line-height: 1.6;
-        }
+        .test-result-card.warning-female { border-right-color: #e91e63; }
+        .test-result-card h4 { color: #00796b; font-size: 0.98rem; margin-bottom: 5px; }
+        .test-result-card p { font-size: 0.86rem; line-height: 1.55; }
 
         .highlight-alert {
-            display: inline-block;
+            display: block;
             background: #ffebee;
             color: #c2185b;
-            padding: 4px 8px;
+            padding: 5px 8px;
             border-radius: 6px;
             font-weight: 700;
             margin-top: 6px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
         }
 
         .raw-text-box {
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.25);
             padding: 10px;
             border-radius: 8px;
             font-size: 0.75rem;
             color: #cfd8dc;
-            margin-top: 15px;
+            margin-top: 12px;
             max-height: 100px;
             overflow-y: auto;
             white-space: pre-wrap;
@@ -235,173 +189,225 @@
 <div class="container">
     <header>
         <h1>الماسح الذكي لتحضيرات التحاليل</h1>
-        <p>التقطي صورة الروشتة/الورقة لعرض شروط السحب بدقة تلقائياً</p>
+        <p>فحص الروشتة وقراءة التحاليل مع الدوران التلقائي للصور الرأسية</p>
     </header>
 
     <div class="controls-card">
-        <div class="gender-select">
-            <label>نوع المريض/الحالة:</label>
-            <div class="gender-options">
-                <label>
-                    <input type="radio" name="gender" value="female" checked> أنثى (Female)
-                </label>
-                <label>
-                    <input type="radio" name="gender" value="male"> ذكر (Male)
-                </label>
-            </div>
+        <div class="gender-options">
+            <span style="font-weight:600; font-size:0.9rem;">الحالة:</span>
+            <label><input type="radio" name="gender" value="female" checked> أنثى (Female)</label>
+            <label><input type="radio" name="gender" value="male"> ذكر (Male)</label>
         </div>
 
         <div class="upload-area">
             <label for="cameraInput" class="btn-action">📸 فتح الكاميرا وتصوير الورقة</label>
-            <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handleImage(this)">
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="loadFile(this)">
 
             <label for="fileInput" class="btn-action" style="background-color: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3);">📁 اختيار صورة من المعرض</label>
-            <input type="file" id="fileInput" accept="image/*" onchange="handleImage(this)">
+            <input type="file" id="fileInput" accept="image/*" onchange="loadFile(this)">
         </div>
 
-        <img id="imagePreview" alt="معاينة الصورة">
+        <div id="previewContainer">
+            <img id="imagePreview" alt="معاينة الصورة">
+            <div class="rotate-toolbar">
+                <button class="btn-small" onclick="rotateImage(90)">🔄 تدوير 90° لليمين</button>
+                <button class="btn-small" onclick="rotateImage(-90)">🔄 تدوير 90° لليسار</button>
+                <button class="btn-small" style="background: var(--accent);" onclick="startOCR()">🔍 بدء الفحص الآن</button>
+            </div>
+        </div>
     </div>
 
-    <!-- مؤشر التحميل المشوش -->
+    <!-- مؤشر التحميل -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-card">
             <div class="spinner"></div>
             <h3>Loading...</h3>
-            <p id="loadingStatus" style="font-size: 0.85rem; color: #b2dfdb;">جارٍ فحص وقراءة الروشتة...</p>
+            <p id="loadingStatus" style="font-size: 0.85rem; color: #b2dfdb;">جارٍ معالجة الصورة وقراءة السطور...</p>
         </div>
     </div>
 
-    <!-- النتائج والتعليمات -->
+    <!-- قائمة النتائج -->
     <div class="results-section" id="resultsSection">
-        <h3>التحاليل المكتشفة والتعليمات الطبية:</h3>
+        <h3>التحاليل المكتشفة وشروط السحب:</h3>
         <div id="resultsList"></div>
-
-        <div style="margin-top: 15px;">
-            <span style="font-size: 0.8rem; color: var(--text-sub);">النص المقروء من الصورة:</span>
-            <div class="raw-text-box" id="rawText"></div>
-        </div>
+        <div class="raw-text-box" id="rawText"></div>
     </div>
 </div>
 
+<canvas id="hiddenCanvas" style="display:none;"></canvas>
+
 <script>
-    // قاعدة بيانات التحاليل والشروط الطبية مع الاختصارات
+    let currentImage = new Image();
+    let currentRotation = 0;
+
+    // بنك تحاليل الروشتة وشروطها
     const testsDatabase = [
-        {
-            id: 'fbs',
-            name: 'سكر صائم (Fasting Blood Sugar)',
-            keywords: ['fasting blood sugar', 'fasting blood suger', 'fbs', 'f.b.s', 'سكر صائم'],
-            getInstructions: (gender) => `يحتاج إلى صيام تام من 6 إلى 8 ساعات كاملة (ويفضل حتى 10 ساعات). شرب الماء النقي فقط مسموح به، ويمنع الشاي والقهوة والمشروبات أو التدخين.`
-        },
         {
             id: 'vitamin_d',
             name: 'فيتامين د (Vitamin D)',
-            keywords: ['vitamin d', 'vaitamin d', 'vit d', 'v.d', '25-oh', 'فيتامين د'],
-            getInstructions: (gender) => {
-                if (gender === 'female') {
-                    return `
-                        <strong>تعليمات السحب:</strong> يفضل سحب العينة صباحاً مع تجنب تناول جرعات فيتامين د المكثفة في نفس اليوم.<br>
-                        <span class="highlight-alert">⚠️ تنبيه خاص بالحالة (أنثى): لا يتم السحب أثناء فترة الدورة الشهرية (البريود)، ويتم السحب بعد الانتهاء منها بـ 48 ساعة.</span>
-                    `;
-                } else {
-                    return `يفضل سحب العينة صباحاً، مع تجنب تناول جرعات علاجية عالية من فيتامين د قبل الفحص بيومين إلا بتعليمات الطبيب.`;
-                }
-            }
+            regex: /(vitamin\s*d|vaitamin\s*d|vit\s*d|v\.d)/i,
+            getInstructions: (g) => g === 'female' 
+                ? `يفضل إجراؤه صباحاً.<br><span class="highlight-alert">⚠️ تنبيه للحالة (أنثى): لا يتم السحب أثناء فترة البريود، ويتم السحب بعد الانتهاء منها بـ 48 ساعة.</span>`
+                : `يفضل إجراؤه صباحاً مع تجنب تناول جرعات علاجية مكثفة من فيتامين د قبل الفحص بيومين.`
+        },
+        {
+            id: 'fbs',
+            name: 'سكر صائم (FBS)',
+            regex: /(fasting\s*blood\s*sugar|fbs|f\.b\.s|سكر\s*صائم)/i,
+            getInstructions: () => `صيام تام من 6 إلى 8 ساعات (مسموح بشرب الماء النقي فقط).`
         },
         {
             id: 'rbs',
             name: 'سكر عشوائي (Random Blood Sugar)',
-            keywords: ['random blood sugar', 'rbs', 'r.b.s', 'سكر عشوائي'],
-            getInstructions: (gender) => `لا يشترط الصيام، ويتم سحبه في أي وقت خلال اليوم.`
-        },
-        {
-            id: 'lipid',
-            name: 'دهون شحوم وكوليسترول (Lipid Profile)',
-            keywords: ['lipid profile', 'cholesterol', 'triglycerides', 'دهون', 'كوليسترول'],
-            getInstructions: (gender) => `يحتاج إلى صيام صارم من 12 إلى 14 ساعة كاملة عن الأكل والشرب عدا الماء فقط، وتجنب الوجبات شديدة الدسم في الليلة السابقة.`
+            regex: /(random\s*b|rbs|random\s*sugar)/i,
+            getInstructions: () => `لا يشترط الصيام، ويتم سحب العينة في أي وقت خلال اليوم.`
         },
         {
             id: 'cbc',
             name: 'صورة دم كاملة (CBC)',
-            keywords: ['cbc', 'complete blood count', 'صورة دم'],
-            getInstructions: (gender) => `لا يشترط الصيام التام، ولكن ينصح بأن يكون الجسم في حالة راحة تامة وشرب كمية كافية من الماء.`
+            regex: /(cbc|complete\s*blood\s*picture|complete\s*blood\s*count)/i,
+            getInstructions: () => `لا يشترط الصيام، ولكن يفضل شرب كمية كافية من الماء وتجنب الإجهاد البدني العنيف.`
+        },
+        {
+            id: 'alt_ast',
+            name: 'وظائف كبد (SGOT / SGPT / ALT / AST / Albumin)',
+            regex: /(ast|sgot|alt|sgpt|albumin)/i,
+            getInstructions: () => `لا يشترط الصيام التام، ويفضل تجنب الأغذية شديدة الدسم والكحوليات قبل التحليل بـ 24 ساعة.`
+        },
+        {
+            id: 'kidney',
+            name: 'وظائف كلى (Creatinine / BUN / Urea)',
+            regex: /(creatinine|blood\s*urea|bun|urea)/i,
+            getInstructions: () => `يفضل صيام خفيف من 4 إلى 6 ساعات وتجنب تناول كميات مفرطة من اللحوم الحمراء في اليوم السابق.`
+        },
+        {
+            id: 'electrolytes',
+            name: 'أملاح ومعادن الدم (Sodium / Potassium)',
+            regex: /(sodium|potassium)/i,
+            getInstructions: () => `لا يشترط الصيام، ولكن يجب إبلاغ المعمل بأي أدوية ضغط أو مدرات بول يتم تناولها بانتظام.`
+        },
+        {
+            id: 'iron',
+            name: 'حديد السيرم (Serum Iron)',
+            regex: /(serum\s*iron|iron)/i,
+            getInstructions: () => `صيام 8 إلى 12 ساعة، ويسحب صباحاً لأن مستوى الحديد يكون في أعلى مستوياته في الصباح، مع إيقاف مكملات الحديد قبلها بـ 24-48 ساعة.`
+        },
+        {
+            id: 'urine',
+            name: 'تحليل بول كامل (Complete Urine Analysis)',
+            regex: /(urine\s*analysis|urine)/i,
+            getInstructions: () => `عينة بول صباحية أولى في وعاء معقم، مع غسل وتطهير المنطقة، وأخذ عينة منتصف البول (Mid-stream).`
+        },
+        {
+            id: 'stool',
+            name: 'تحليل براز (Stool Analysis)',
+            regex: /(stool\s*analysis|stool)/i,
+            getInstructions: () => `تجمع العينة في وعاء نظيف ومعقم بدون اختلاطها بماء المرحاض أو البول وتُسلّم للمعمل خلال ساعتين.`
+        },
+        {
+            id: 'ultrasound',
+            name: 'سونار البطن والحوض (Ultrasound Abdomen & Pelvis)',
+            regex: /(ultrasound|ultrasondg|pelvis|abdomen)/i,
+            getInstructions: () => `صيام 6 إلى 8 ساعات عن الأكل لفحص البطن، مع شرب لتر ماء وحبس البول لامتلاء المثانة لفحص الحوض.`
         }
     ];
 
-    function handleImage(input) {
+    function loadFile(input) {
         if (!input.files || !input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            currentImage.onload = () => {
+                // إذا كانت الصورة رأسية أطول بكثير من عرضها، يتم تدويرها تلقائياً 90 درجة لتصبح أفقية
+                currentRotation = currentImage.height > currentImage.width ? 90 : 0;
+                renderPreview();
+                document.getElementById('previewContainer').style.display = 'block';
+                startOCR();
+            };
+            currentImage.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
 
-        const file = input.files[0];
-        const preview = document.getElementById('imagePreview');
-        preview.src = URL.createObjectURL(file);
-        preview.style.display = 'block';
+    function rotateImage(angle) {
+        currentRotation = (currentRotation + angle) % 360;
+        renderPreview();
+    }
 
-        // تشغيل شاشة التحميل المشوشة
+    function renderPreview() {
+        const canvas = document.getElementById('hiddenCanvas');
+        const ctx = canvas.getContext('2d');
+        const rad = (currentRotation * Math.PI) / 180;
+
+        if (Math.abs(currentRotation) === 90 || Math.abs(currentRotation) === 270) {
+            canvas.width = currentImage.height;
+            canvas.height = currentImage.width;
+        } else {
+            canvas.width = currentImage.width;
+            canvas.height = currentImage.height;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(rad);
+        ctx.drawImage(currentImage, -currentImage.width / 2, -currentImage.height / 2);
+        ctx.restore();
+
+        document.getElementById('imagePreview').src = canvas.toDataURL();
+    }
+
+    function startOCR() {
+        const canvas = document.getElementById('hiddenCanvas');
         const overlay = document.getElementById('loadingOverlay');
         const statusText = document.getElementById('loadingStatus');
-        overlay.style.display = 'flex';
 
-        // قراءة النص باستخدام Tesseract.js
-        Tesseract.recognize(
-            file,
-            'eng+ara', // يدعم الإنجليزية والعربية
-            {
-                logger: m => {
-                    if (m.status === 'recognizing text') {
-                        statusText.innerText = `جارٍ قراءة النصوص: ${Math.round(m.progress * 100)}%`;
-                    }
+        overlay.style.display = 'flex';
+        statusText.innerText = 'جارٍ معالجة وتدوير الصورة...';
+
+        Tesseract.recognize(canvas, 'eng', {
+            logger: m => {
+                if (m.status === 'recognizing text') {
+                    statusText.innerText = `جارٍ فحص الروشتة: ${Math.round(m.progress * 100)}%`;
                 }
             }
-        ).then(({ data: { text } }) => {
+        }).then(({ data: { text } }) => {
             overlay.style.display = 'none';
             analyzeText(text);
         }).catch(err => {
             overlay.style.display = 'none';
-            alert('حدث خطأ أثناء قراءة الصورة، يرجى التأكد من وضوح الخط والإضاءة.');
-            console.error(err);
+            alert('حدث خطأ أثناء القراءة، جربي تدوير الصورة يدوياً واضغطي فحص.');
         });
     }
 
     function analyzeText(rawText) {
-        const textLower = rawText.toLowerCase();
         const selectedGender = document.querySelector('input[name="gender"]:checked').value;
         const resultsList = document.getElementById('resultsList');
         const resultsSection = document.getElementById('resultsSection');
         const rawTextBox = document.getElementById('rawText');
 
         resultsList.innerHTML = '';
-        rawTextBox.innerText = rawText.trim() || 'لم يتم التعرف على كلمات واضحة.';
+        rawTextBox.innerText = 'النص المكتشف:\n' + rawText.trim();
 
-        let detectedTests = [];
-
-        // فحص وجود أي من الكلمات الدلالية أو الاختصارات داخل النص
+        let matched = [];
         testsDatabase.forEach(test => {
-            const isMatch = test.keywords.some(keyword => {
-                const regex = new RegExp('\\b' + keyword.replace('.', '\\.') + '\\b', 'i');
-                return regex.test(textLower) || textLower.includes(keyword);
-            });
-
-            if (isMatch) {
-                detectedTests.push(test);
+            if (test.regex.test(rawText)) {
+                matched.push(test);
             }
         });
 
-        if (detectedTests.length > 0) {
-            detectedTests.forEach(test => {
+        if (matched.length > 0) {
+            matched.forEach(test => {
                 const card = document.createElement('div');
-                const isFemaleWarning = test.id === 'vitamin_d' && selectedGender === 'female';
-                card.className = `test-result-card ${isFemaleWarning ? 'warning-female' : ''}`;
-
-                card.innerHTML = `
-                    <h4>📋 ${test.name}</h4>
-                    <p>${test.getInstructions(selectedGender)}</p>
-                `;
+                const isWarning = test.id === 'vitamin_d' && selectedGender === 'female';
+                card.className = `test-result-card ${isWarning ? 'warning-female' : ''}`;
+                card.innerHTML = `<h4>📋 ${test.name}</h4><p>${test.getInstructions(selectedGender)}</p>`;
                 resultsList.appendChild(card);
             });
         } else {
             resultsList.innerHTML = `
                 <div class="test-result-card" style="border-right-color: #f59e0b;">
-                    <h4>لم يتم مطابقة تحاليل محددة بدقة</h4>
-                    <p>يرجى التأكد من تصوير اسم التحليل أو اختصاره بشكل أفقي وواضح، أو كتابته مباشرة في شريط البحث.</p>
+                    <h4>لم تظهر نصوص واضحة</h4>
+                    <p>استخدمي أزرار التدوير أعلاه لجعل أسطر الكلمات أفقية، ثم اضغطي (بدء الفحص الآن).</p>
                 </div>
             `;
         }
@@ -413,4 +419,3 @@
 
 </body>
 </html>
-
