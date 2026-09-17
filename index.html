@@ -110,7 +110,6 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* شاشة التحميل المشوشة */
         .loading-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -144,7 +143,6 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* قسم النتائج */
         .results-section { margin-top: 20px; display: none; }
         .results-section h3 { font-size: 1.05rem; margin-bottom: 12px; color: var(--accent); }
 
@@ -185,7 +183,7 @@
     <div class="controls-card">
         <div class="api-input-group">
             <label>مفتاح الذكاء الاصطناعي المجاني (Gemini API Key):</label>
-            <input type="password" id="apiKeyInput" placeholder="الصقي المفتاح هنا (يُحفظ تلقائياً في هاتفك)" onchange="saveKey(this.value)">
+            <input type="password" id="apiKeyInput" placeholder="الصقي المفتاح هنا" onchange="saveKey(this.value)">
         </div>
 
         <div class="gender-options">
@@ -212,7 +210,7 @@
         <div class="loading-card">
             <div class="spinner"></div>
             <h3>Loading...</h3>
-            <p id="loadingStatus" style="font-size: 0.85rem; color: #b2dfdb;">جارٍ استخراج التحاليل والشروط عبر الذكاء الاصطناعي...</p>
+            <p id="loadingStatus" style="font-size: 0.85rem; color: #b2dfdb;">جارٍ فحص الروشتة واستخراج الشروط عبر الذكاء الاصطناعي...</p>
         </div>
     </div>
 
@@ -224,10 +222,13 @@
 </div>
 
 <script>
-    // استرجاع المفتاح المحفوظ على الجهاز إن وجد
+    // وضع المفتاح الخاص بكِ تلقائياً
+    const defaultKey = "AQ.Ab8RN6KAiBSRAVjzIGKpBqwwXilXM9Yh7XSNC4dZl6jQ5tqW2A";
+
     window.onload = () => {
-        const savedKey = localStorage.getItem('gemini_api_key');
-        if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
+        const savedKey = localStorage.getItem('gemini_api_key') || defaultKey;
+        document.getElementById('apiKeyInput').value = savedKey;
+        localStorage.setItem('gemini_api_key', savedKey);
     };
 
     function saveKey(val) {
@@ -239,7 +240,7 @@
 
         const key = document.getElementById('apiKeyInput').value.trim();
         if (!key) {
-            alert('يرجى وضع مفتاح Gemini API المجاني أولاً في الخانة المخصصة.');
+            alert('يرجى وضع المفتاح في الخانة المخصصة.');
             return;
         }
 
@@ -251,9 +252,9 @@
             preview.src = e.target.result;
             document.getElementById('previewContainer').style.display = 'block';
 
-            // تحويل الصورة إلى صيغة Base64 لإرسالها للذكاء الاصطناعي
             const base64Data = e.target.result.split(',')[1];
-            analyzeWithGemini(base64Data, file.type, key);
+            const mimeType = file.type || 'image/jpeg';
+            analyzeWithGemini(base64Data, mimeType, key);
         };
         reader.readAsDataURL(file);
     }
@@ -265,37 +266,45 @@
         const gender = document.querySelector('input[name="gender"]:checked').value;
 
         const systemPrompt = `
-أنت استشاري وخبير تحاليل طبية ونظام الدوت كير (DotCare).
+أنت استشاري تحاليل طبية ونظام الدوت كير (DotCare).
 المهمة:
-1. اقرأ الصورة المرفقة واستخرج جميع الفحوصات والتحاليل المكتوبة فيها بدقة (حتى لو كانت الصورة رأسية، مائلة، خط يد، أو اختصارات مثل FBS, CBC, V.D, SGPT, BUN... إلخ).
-2. بالنسبة لكل تحليل مستخرج، حدد شروط التحضير والسحب الدقيقة باللغة العربية.
-3. حالة المريض الحالية هي: [${gender}].
-   - تنبيه إلزامي: إذا كان هناك تحليل Vitamin D أو V.D والحالة (أنثى)، يجب التنبيه بوضوح أنه لا يتم السحب أثناء فترة البريود، ويتم السحب بعد الانتهاء منها بـ 48 ساعة.
-   - إذا كان هناك سكر صائم (FBS)، يجب تحديد ساعات الصيام بدقة (من 6 إلى 8 أو 10 ساعات حسب المعتاد مع شرب الماء فقط).
+1. اقرأ الصورة المرفقة واستخرج كافة الفحوصات والتحاليل المكتوبة فيها بدقة، حتى لو كانت الورقة رأسية أو مائلة أو مكتوبة باختصارات (مثل: ALBUMIN, AST, SGOT, BUN, CBC, URINE, CREATININE, POTASSIUM, SODIUM, STOOL, VITAMIN D, ULTRASOUND... إلخ).
+2. استخرج شروط التحضير والسحب لكل فحص باللغة العربية.
+3. حالة المريض: [${gender}].
+   - تنبيه: إذا وُجد Vitamin D والحالة (أنثى)، نبّه بوضوح: لا يتم السحب أثناء فترة البريود، ويتم بعد انتهائها بـ 48 ساعة.
+   - وضح شروط الصيام وساعاته بدقة لكل تحليل يتطلب ذلك.
 
-يجب أن يكون الرد بصيغة JSON فقط، بدون أي نصوص إضافية خارج الـ JSON:
+أعد النتيجة بصيغة JSON فقط:
 [
   {
     "test_name": "اسم التحليل مع اختصاره",
     "instructions": "شروط التحضير والسحب بالتفصيل",
-    "is_critical_female": true / false
+    "is_critical_female": true
   }
-]
-`;
+]`;
 
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`;
+            const response = await fetch(endpoint, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-goog-api-key': key
+                },
                 body: JSON.stringify({
                     contents: [{
                         parts: [
                             { text: systemPrompt },
-                            { inline_data: { mime_type: mimeType, data: base64Image } }
+                            {
+                                inlineData: {
+                                    mimeType: mimeType,
+                                    data: base64Image
+                                }
+                            }
                         ]
                     }],
                     generationConfig: {
-                        response_mime_type: "application/json"
+                        responseMimeType: "application/json"
                     }
                 })
             });
@@ -303,15 +312,22 @@
             const data = await response.json();
             overlay.style.display = 'none';
 
-            if (data.candidates && data.candidates[0].content.parts[0].text) {
-                const results = JSON.parse(data.candidates[0].content.parts[0].text);
+            if (!response.ok) {
+                const errMsg = data.error ? data.error.message : 'خطأ غير معروف في الخدمة';
+                alert('خطأ من السيرفر: ' + errMsg);
+                return;
+            }
+
+            if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
+                const textResponse = data.candidates[0].content.parts[0].text;
+                const results = JSON.parse(textResponse);
                 displayResults(results);
             } else {
-                alert('تعذر استخراج البيانات من الصورة. تأكدي من صحة المفتاح ووضوح الروشتة.');
+                alert('تعذر استخراج البيانات من الصورة. تأكدي من إضاءة الورقة ووضوحها.');
             }
         } catch (error) {
             overlay.style.display = 'none';
-            alert('حدث خطأ في الاتصال: تأكدي من المفتاح وجودة الاتصال بالإنترنت.');
+            alert('حدث خطأ في الاتصال: ' + error.message);
             console.error(error);
         }
     }
