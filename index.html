@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الماسح الذكي لروشتات التحاليل الطبية</title>
+    <title>الماسح الذكي لتحضيرات التحاليل الطبية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
-
     <style>
         :root {
             --bg-gradient: linear-gradient(180deg, #0d5c58 0%, #063836 100%);
@@ -41,6 +39,28 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
 
+        .api-input-group {
+            margin-bottom: 14px;
+        }
+
+        .api-input-group label {
+            display: block;
+            font-size: 0.82rem;
+            color: var(--text-sub);
+            margin-bottom: 5px;
+        }
+
+        .api-input-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.25);
+            color: #fff;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
         .gender-options {
             display: flex;
             gap: 15px;
@@ -65,7 +85,7 @@
             background-color: var(--primary);
             color: #00332c;
             border: none;
-            padding: 11px;
+            padding: 12px;
             border-radius: 10px;
             font-size: 0.92rem;
             font-weight: 700;
@@ -77,7 +97,6 @@
 
         input[type="file"] { display: none; }
 
-        /* منطقة معاينة وتدوير الصورة */
         #previewContainer {
             display: none;
             margin-top: 15px;
@@ -86,26 +105,9 @@
 
         #imagePreview {
             max-width: 100%;
-            max-height: 280px;
+            max-height: 250px;
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .rotate-toolbar {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            margin-top: 10px;
-        }
-
-        .btn-small {
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.25);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            cursor: pointer;
         }
 
         /* شاشة التحميل المشوشة */
@@ -142,7 +144,7 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* نتائج الفحص */
+        /* قسم النتائج */
         .results-section { margin-top: 20px; display: none; }
         .results-section h3 { font-size: 1.05rem; margin-bottom: 12px; color: var(--accent); }
 
@@ -158,29 +160,17 @@
 
         .test-result-card.warning-female { border-right-color: #e91e63; }
         .test-result-card h4 { color: #00796b; font-size: 0.98rem; margin-bottom: 5px; }
-        .test-result-card p { font-size: 0.86rem; line-height: 1.55; }
+        .test-result-card p { font-size: 0.86rem; line-height: 1.6; }
 
-        .highlight-alert {
-            display: block;
+        .alert-box {
             background: #ffebee;
             color: #c2185b;
-            padding: 5px 8px;
+            padding: 6px 10px;
             border-radius: 6px;
             font-weight: 700;
-            margin-top: 6px;
+            margin-top: 8px;
             font-size: 0.82rem;
-        }
-
-        .raw-text-box {
-            background: rgba(0, 0, 0, 0.25);
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            color: #cfd8dc;
-            margin-top: 12px;
-            max-height: 100px;
-            overflow-y: auto;
-            white-space: pre-wrap;
+            display: inline-block;
         }
     </style>
 </head>
@@ -189,31 +179,31 @@
 <div class="container">
     <header>
         <h1>الماسح الذكي لتحضيرات التحاليل</h1>
-        <p>فحص الروشتة وقراءة التحاليل مع الدوران التلقائي للصور الرأسية</p>
+        <p>تحليل الروشتات بخط اليد ونظام DotCare عبر الذكاء الاصطناعي</p>
     </header>
 
     <div class="controls-card">
+        <div class="api-input-group">
+            <label>مفتاح الذكاء الاصطناعي المجاني (Gemini API Key):</label>
+            <input type="password" id="apiKeyInput" placeholder="الصقي المفتاح هنا (يُحفظ تلقائياً في هاتفك)" onchange="saveKey(this.value)">
+        </div>
+
         <div class="gender-options">
             <span style="font-weight:600; font-size:0.9rem;">الحالة:</span>
-            <label><input type="radio" name="gender" value="female" checked> أنثى (Female)</label>
-            <label><input type="radio" name="gender" value="male"> ذكر (Male)</label>
+            <label><input type="radio" name="gender" value="أنثى" checked> أنثى (Female)</label>
+            <label><input type="radio" name="gender" value="ذكر"> ذكر (Male)</label>
         </div>
 
         <div class="upload-area">
-            <label for="cameraInput" class="btn-action">📸 فتح الكاميرا وتصوير الورقة</label>
-            <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="loadFile(this)">
+            <label for="cameraInput" class="btn-action">📸 فتح الكاميرا وتصوير الروشتة</label>
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="processImage(this)">
 
             <label for="fileInput" class="btn-action" style="background-color: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3);">📁 اختيار صورة من المعرض</label>
-            <input type="file" id="fileInput" accept="image/*" onchange="loadFile(this)">
+            <input type="file" id="fileInput" accept="image/*" onchange="processImage(this)">
         </div>
 
         <div id="previewContainer">
-            <img id="imagePreview" alt="معاينة الصورة">
-            <div class="rotate-toolbar">
-                <button class="btn-small" onclick="rotateImage(90)">🔄 تدوير 90° لليمين</button>
-                <button class="btn-small" onclick="rotateImage(-90)">🔄 تدوير 90° لليسار</button>
-                <button class="btn-small" style="background: var(--accent);" onclick="startOCR()">🔍 بدء الفحص الآن</button>
-            </div>
+            <img id="imagePreview" alt="معاينة الروشتة">
         </div>
     </div>
 
@@ -222,194 +212,128 @@
         <div class="loading-card">
             <div class="spinner"></div>
             <h3>Loading...</h3>
-            <p id="loadingStatus" style="font-size: 0.85rem; color: #b2dfdb;">جارٍ معالجة الصورة وقراءة السطور...</p>
+            <p id="loadingStatus" style="font-size: 0.85rem; color: #b2dfdb;">جارٍ استخراج التحاليل والشروط عبر الذكاء الاصطناعي...</p>
         </div>
     </div>
 
-    <!-- قائمة النتائج -->
+    <!-- قسم النتائج -->
     <div class="results-section" id="resultsSection">
-        <h3>التحاليل المكتشفة وشروط السحب:</h3>
+        <h3>التحاليل المكتشفة وتعليمات التحضير:</h3>
         <div id="resultsList"></div>
-        <div class="raw-text-box" id="rawText"></div>
     </div>
 </div>
 
-<canvas id="hiddenCanvas" style="display:none;"></canvas>
-
 <script>
-    let currentImage = new Image();
-    let currentRotation = 0;
+    // استرجاع المفتاح المحفوظ على الجهاز إن وجد
+    window.onload = () => {
+        const savedKey = localStorage.getItem('gemini_api_key');
+        if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
+    };
 
-    // بنك تحاليل الروشتة وشروطها
-    const testsDatabase = [
-        {
-            id: 'vitamin_d',
-            name: 'فيتامين د (Vitamin D)',
-            regex: /(vitamin\s*d|vaitamin\s*d|vit\s*d|v\.d)/i,
-            getInstructions: (g) => g === 'female' 
-                ? `يفضل إجراؤه صباحاً.<br><span class="highlight-alert">⚠️ تنبيه للحالة (أنثى): لا يتم السحب أثناء فترة البريود، ويتم السحب بعد الانتهاء منها بـ 48 ساعة.</span>`
-                : `يفضل إجراؤه صباحاً مع تجنب تناول جرعات علاجية مكثفة من فيتامين د قبل الفحص بيومين.`
-        },
-        {
-            id: 'fbs',
-            name: 'سكر صائم (FBS)',
-            regex: /(fasting\s*blood\s*sugar|fbs|f\.b\.s|سكر\s*صائم)/i,
-            getInstructions: () => `صيام تام من 6 إلى 8 ساعات (مسموح بشرب الماء النقي فقط).`
-        },
-        {
-            id: 'rbs',
-            name: 'سكر عشوائي (Random Blood Sugar)',
-            regex: /(random\s*b|rbs|random\s*sugar)/i,
-            getInstructions: () => `لا يشترط الصيام، ويتم سحب العينة في أي وقت خلال اليوم.`
-        },
-        {
-            id: 'cbc',
-            name: 'صورة دم كاملة (CBC)',
-            regex: /(cbc|complete\s*blood\s*picture|complete\s*blood\s*count)/i,
-            getInstructions: () => `لا يشترط الصيام، ولكن يفضل شرب كمية كافية من الماء وتجنب الإجهاد البدني العنيف.`
-        },
-        {
-            id: 'alt_ast',
-            name: 'وظائف كبد (SGOT / SGPT / ALT / AST / Albumin)',
-            regex: /(ast|sgot|alt|sgpt|albumin)/i,
-            getInstructions: () => `لا يشترط الصيام التام، ويفضل تجنب الأغذية شديدة الدسم والكحوليات قبل التحليل بـ 24 ساعة.`
-        },
-        {
-            id: 'kidney',
-            name: 'وظائف كلى (Creatinine / BUN / Urea)',
-            regex: /(creatinine|blood\s*urea|bun|urea)/i,
-            getInstructions: () => `يفضل صيام خفيف من 4 إلى 6 ساعات وتجنب تناول كميات مفرطة من اللحوم الحمراء في اليوم السابق.`
-        },
-        {
-            id: 'electrolytes',
-            name: 'أملاح ومعادن الدم (Sodium / Potassium)',
-            regex: /(sodium|potassium)/i,
-            getInstructions: () => `لا يشترط الصيام، ولكن يجب إبلاغ المعمل بأي أدوية ضغط أو مدرات بول يتم تناولها بانتظام.`
-        },
-        {
-            id: 'iron',
-            name: 'حديد السيرم (Serum Iron)',
-            regex: /(serum\s*iron|iron)/i,
-            getInstructions: () => `صيام 8 إلى 12 ساعة، ويسحب صباحاً لأن مستوى الحديد يكون في أعلى مستوياته في الصباح، مع إيقاف مكملات الحديد قبلها بـ 24-48 ساعة.`
-        },
-        {
-            id: 'urine',
-            name: 'تحليل بول كامل (Complete Urine Analysis)',
-            regex: /(urine\s*analysis|urine)/i,
-            getInstructions: () => `عينة بول صباحية أولى في وعاء معقم، مع غسل وتطهير المنطقة، وأخذ عينة منتصف البول (Mid-stream).`
-        },
-        {
-            id: 'stool',
-            name: 'تحليل براز (Stool Analysis)',
-            regex: /(stool\s*analysis|stool)/i,
-            getInstructions: () => `تجمع العينة في وعاء نظيف ومعقم بدون اختلاطها بماء المرحاض أو البول وتُسلّم للمعمل خلال ساعتين.`
-        },
-        {
-            id: 'ultrasound',
-            name: 'سونار البطن والحوض (Ultrasound Abdomen & Pelvis)',
-            regex: /(ultrasound|ultrasondg|pelvis|abdomen)/i,
-            getInstructions: () => `صيام 6 إلى 8 ساعات عن الأكل لفحص البطن، مع شرب لتر ماء وحبس البول لامتلاء المثانة لفحص الحوض.`
-        }
-    ];
+    function saveKey(val) {
+        localStorage.setItem('gemini_api_key', val.trim());
+    }
 
-    function loadFile(input) {
+    function processImage(input) {
         if (!input.files || !input.files[0]) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            currentImage.onload = () => {
-                // إذا كانت الصورة رأسية أطول بكثير من عرضها، يتم تدويرها تلقائياً 90 درجة لتصبح أفقية
-                currentRotation = currentImage.height > currentImage.width ? 90 : 0;
-                renderPreview();
-                document.getElementById('previewContainer').style.display = 'block';
-                startOCR();
-            };
-            currentImage.src = e.target.result;
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
 
-    function rotateImage(angle) {
-        currentRotation = (currentRotation + angle) % 360;
-        renderPreview();
-    }
-
-    function renderPreview() {
-        const canvas = document.getElementById('hiddenCanvas');
-        const ctx = canvas.getContext('2d');
-        const rad = (currentRotation * Math.PI) / 180;
-
-        if (Math.abs(currentRotation) === 90 || Math.abs(currentRotation) === 270) {
-            canvas.width = currentImage.height;
-            canvas.height = currentImage.width;
-        } else {
-            canvas.width = currentImage.width;
-            canvas.height = currentImage.height;
+        const key = document.getElementById('apiKeyInput').value.trim();
+        if (!key) {
+            alert('يرجى وضع مفتاح Gemini API المجاني أولاً في الخانة المخصصة.');
+            return;
         }
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.save();
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(rad);
-        ctx.drawImage(currentImage, -currentImage.width / 2, -currentImage.height / 2);
-        ctx.restore();
+        const file = input.files[0];
+        const reader = new FileReader();
 
-        document.getElementById('imagePreview').src = canvas.toDataURL();
+        reader.onload = (e) => {
+            const preview = document.getElementById('imagePreview');
+            preview.src = e.target.result;
+            document.getElementById('previewContainer').style.display = 'block';
+
+            // تحويل الصورة إلى صيغة Base64 لإرسالها للذكاء الاصطناعي
+            const base64Data = e.target.result.split(',')[1];
+            analyzeWithGemini(base64Data, file.type, key);
+        };
+        reader.readAsDataURL(file);
     }
 
-    function startOCR() {
-        const canvas = document.getElementById('hiddenCanvas');
+    async function analyzeWithGemini(base64Image, mimeType, key) {
         const overlay = document.getElementById('loadingOverlay');
-        const statusText = document.getElementById('loadingStatus');
-
         overlay.style.display = 'flex';
-        statusText.innerText = 'جارٍ معالجة وتدوير الصورة...';
 
-        Tesseract.recognize(canvas, 'eng', {
-            logger: m => {
-                if (m.status === 'recognizing text') {
-                    statusText.innerText = `جارٍ فحص الروشتة: ${Math.round(m.progress * 100)}%`;
-                }
+        const gender = document.querySelector('input[name="gender"]:checked').value;
+
+        const systemPrompt = `
+أنت استشاري وخبير تحاليل طبية ونظام الدوت كير (DotCare).
+المهمة:
+1. اقرأ الصورة المرفقة واستخرج جميع الفحوصات والتحاليل المكتوبة فيها بدقة (حتى لو كانت الصورة رأسية، مائلة، خط يد، أو اختصارات مثل FBS, CBC, V.D, SGPT, BUN... إلخ).
+2. بالنسبة لكل تحليل مستخرج، حدد شروط التحضير والسحب الدقيقة باللغة العربية.
+3. حالة المريض الحالية هي: [${gender}].
+   - تنبيه إلزامي: إذا كان هناك تحليل Vitamin D أو V.D والحالة (أنثى)، يجب التنبيه بوضوح أنه لا يتم السحب أثناء فترة البريود، ويتم السحب بعد الانتهاء منها بـ 48 ساعة.
+   - إذا كان هناك سكر صائم (FBS)، يجب تحديد ساعات الصيام بدقة (من 6 إلى 8 أو 10 ساعات حسب المعتاد مع شرب الماء فقط).
+
+يجب أن يكون الرد بصيغة JSON فقط، بدون أي نصوص إضافية خارج الـ JSON:
+[
+  {
+    "test_name": "اسم التحليل مع اختصاره",
+    "instructions": "شروط التحضير والسحب بالتفصيل",
+    "is_critical_female": true / false
+  }
+]
+`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            { text: systemPrompt },
+                            { inline_data: { mime_type: mimeType, data: base64Image } }
+                        ]
+                    }],
+                    generationConfig: {
+                        response_mime_type: "application/json"
+                    }
+                })
+            });
+
+            const data = await response.json();
+            overlay.style.display = 'none';
+
+            if (data.candidates && data.candidates[0].content.parts[0].text) {
+                const results = JSON.parse(data.candidates[0].content.parts[0].text);
+                displayResults(results);
+            } else {
+                alert('تعذر استخراج البيانات من الصورة. تأكدي من صحة المفتاح ووضوح الروشتة.');
             }
-        }).then(({ data: { text } }) => {
+        } catch (error) {
             overlay.style.display = 'none';
-            analyzeText(text);
-        }).catch(err => {
-            overlay.style.display = 'none';
-            alert('حدث خطأ أثناء القراءة، جربي تدوير الصورة يدوياً واضغطي فحص.');
-        });
+            alert('حدث خطأ في الاتصال: تأكدي من المفتاح وجودة الاتصال بالإنترنت.');
+            console.error(error);
+        }
     }
 
-    function analyzeText(rawText) {
-        const selectedGender = document.querySelector('input[name="gender"]:checked').value;
+    function displayResults(tests) {
         const resultsList = document.getElementById('resultsList');
         const resultsSection = document.getElementById('resultsSection');
-        const rawTextBox = document.getElementById('rawText');
-
         resultsList.innerHTML = '';
-        rawTextBox.innerText = 'النص المكتشف:\n' + rawText.trim();
 
-        let matched = [];
-        testsDatabase.forEach(test => {
-            if (test.regex.test(rawText)) {
-                matched.push(test);
-            }
-        });
-
-        if (matched.length > 0) {
-            matched.forEach(test => {
+        if (!Array.isArray(tests) || tests.length === 0) {
+            resultsList.innerHTML = '<div class="test-result-card"><p>لم يتم العثور على تحاليل في الصورة.</p></div>';
+        } else {
+            tests.forEach(item => {
                 const card = document.createElement('div');
-                const isWarning = test.id === 'vitamin_d' && selectedGender === 'female';
-                card.className = `test-result-card ${isWarning ? 'warning-female' : ''}`;
-                card.innerHTML = `<h4>📋 ${test.name}</h4><p>${test.getInstructions(selectedGender)}</p>`;
+                card.className = `test-result-card ${item.is_critical_female ? 'warning-female' : ''}`;
+                card.innerHTML = `
+                    <h4>📋 ${item.test_name}</h4>
+                    <p>${item.instructions}</p>
+                    ${item.is_critical_female ? '<div class="alert-box">⚠️ تنبيه خاص بالحالة (أنثى): مراعاة موعد الدورة الشهرية</div>' : ''}
+                `;
                 resultsList.appendChild(card);
             });
-        } else {
-            resultsList.innerHTML = `
-                <div class="test-result-card" style="border-right-color: #f59e0b;">
-                    <h4>لم تظهر نصوص واضحة</h4>
-                    <p>استخدمي أزرار التدوير أعلاه لجعل أسطر الكلمات أفقية، ثم اضغطي (بدء الفحص الآن).</p>
-                </div>
-            `;
         }
 
         resultsSection.style.display = 'block';
