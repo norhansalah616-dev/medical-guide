@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الماسح الذكي لتحضيرات التحاليل الطبية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <style>
         :root {
             --bg-gradient: linear-gradient(180deg, #0d5c58 0%, #063836 100%);
@@ -26,20 +27,20 @@
 
         .container { max-width: 550px; margin: 0 auto; }
 
-        header { text-align: center; margin-bottom: 25px; }
-        header h1 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; }
+        header { text-align: center; margin-bottom: 22px; }
+        header h1 { font-size: 1.35rem; font-weight: 800; margin-bottom: 5px; }
         header p { font-size: 0.85rem; color: var(--text-sub); }
 
         .controls-card {
             background: var(--card-bg);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
-            padding: 20px 16px;
+            padding: 18px 16px;
             margin-bottom: 20px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
 
-        .gender-options { display: flex; gap: 20px; margin-bottom: 18px; align-items: center; }
+        .gender-options { display: flex; gap: 20px; margin-bottom: 16px; align-items: center; }
         .gender-options label { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; cursor: pointer; }
 
         .upload-area { display: flex; flex-direction: column; gap: 10px; }
@@ -55,15 +56,31 @@
             text-align: center;
             display: block;
             width: 100%;
-            transition: 0.2s;
         }
-        .btn-action:hover { opacity: 0.92; }
 
         input[type="file"] { display: none; }
 
         #previewContainer { display: none; margin-top: 15px; text-align: center; }
-        #imagePreview { max-width: 100%; max-height: 260px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.2); }
+        #imagePreview { max-width: 100%; max-height: 240px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.2); }
 
+        .rotate-bar {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .btn-sub {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        /* نافذة التحميل المشوشة */
         .loading-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -78,7 +95,7 @@
         .loading-card {
             background: rgba(12, 30, 38, 0.95);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 25px 35px;
+            padding: 25px 30px;
             border-radius: 20px;
             text-align: center;
             display: flex;
@@ -97,6 +114,7 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* نتائج الفحص */
         .results-section { margin-top: 20px; display: none; }
         .results-section h3 { font-size: 1.1rem; margin-bottom: 12px; color: var(--accent); }
 
@@ -131,7 +149,7 @@
 <div class="container">
     <header>
         <h1>الماسح الذكي لتحضيرات التحاليل</h1>
-        <p>فحص الروشتات الطبية ونظام DotCare تلقائياً عبر الذكاء الاصطناعي</p>
+        <p>فحص وقراءة فورية للروشتات دون الحاجة لأي مفاتيح أو اشتراكات</p>
     </header>
 
     <div class="controls-card">
@@ -143,14 +161,19 @@
 
         <div class="upload-area">
             <label for="cameraInput" class="btn-action">📸 فتح الكاميرا وتصوير الروشتة</label>
-            <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="processImage(this)">
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="loadFile(this)">
 
             <label for="fileInput" class="btn-action" style="background-color: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3);">📁 اختيار صورة من المعرض</label>
-            <input type="file" id="fileInput" accept="image/*" onchange="processImage(this)">
+            <input type="file" id="fileInput" accept="image/*" onchange="loadFile(this)">
         </div>
 
         <div id="previewContainer">
             <img id="imagePreview" alt="معاينة الروشتة">
+            <div class="rotate-bar">
+                <button class="btn-sub" onclick="rotateManual(-90)">🔄 تدوير يسار</button>
+                <button class="btn-sub" onclick="rotateManual(90)">🔄 تدوير يمين</button>
+                <button class="btn-sub" style="background: var(--accent);" onclick="startScan()">🔍 إعادة الفحص</button>
+            </div>
         </div>
     </div>
 
@@ -158,7 +181,7 @@
         <div class="loading-card">
             <div class="spinner"></div>
             <h3>Loading...</h3>
-            <p style="font-size: 0.85rem; color: #b2dfdb;">جارٍ قراءة الروشتة واستخراج التعليمات...</p>
+            <p id="loadingMsg" style="font-size: 0.85rem; color: #b2dfdb;">جارٍ معالجة الروشتة وتدوير الأسطر...</p>
         </div>
     </div>
 
@@ -168,116 +191,207 @@
     </div>
 </div>
 
+<canvas id="procCanvas" style="display:none;"></canvas>
+
 <script>
-    const _kPart1 = "QVEuQWI4Uk42STFPTkh4";
-    const _kPart2 = "Y3JRUm8xMkowLTlNUVBM";
-    const _kPart3 = "bm5vSTluZXhNTEhhckJY";
-    const _kPart4 = "anl3aTdrd0E=";
-    const getSecureKey = () => atob(_kPart1 + _kPart2 + _kPart3 + _kPart4);
+    let rawImg = new Image();
+    let currentAngle = 0;
 
-    function processImage(input) {
+    // بنك تحاليل DotCare المعتمدة مع كافة الاختصارات
+    const medicalRules = [
+        {
+            name: "فيتامين د (Vitamin D / 25-OH)",
+            keys: ["vitamin d", "vaitamin", "vit d", "v.d", "25-oh"],
+            getNotes: (isFemale) => isFemale 
+                ? `يفضل إجراؤه صباحاً.<br><span class="alert-box">⚠️ تنبيه خاص بالحالة (أنثى): لا يتم السحب أثناء فترة الدورة الشهرية (البريود)، ويتم السحب بعد الانتهاء منها بـ 48 ساعة.</span>`
+                : `يفضل إجراؤه صباحاً، مع تجنب تناول جرعات مكثفة من فيتامين د قبل الفحص بيومين.`
+        },
+         {
+            name: "( 24 HOURS URINE CATECHOLAMINE-CATECHOLAMINE in urine -VMA (Vanillylmandelic Acid)-Urine Metanephrines-Metanephrine in urine-MNs- MET للميتانيفرين-NMN للنورميتانفرين)",
+            keys: ["DA (Dopamine - الدوبامين)", "NE (Norepinephrine - النورأدرينالين)", "Epi (Epinephrine - الأدرينالين)", "VMA (Vanillylmandelic Acid)","Metanephrine in urine","Urine Metanephrines","MNs"," MET للميتانيفرين","NMN للنورميتانفرين"],
+            getNotes: () => `*يتم تجميع عينة بول 24 ساعة.                                                                                           
+                             *يجب الامتناع عن تناول المأكولات التى تحتوى على الفانيليا, الموز,المكسرات, الشاى, الكافيين, الشيكولاتة لمدة 3-4 ايام قبل التجميع.                                                                         
+                             * يجب ايقاف الأدوية التالية (قطرات الأنف ,عقاقير الكحة, موسعات الشعب الهوائية , مثبطات الشهية, أدوية الاكتئاب, أدوية الضغط (الا أراد الطبيب غير ذلك) لمدة 3-4 أيام قبل التجميع.
+                             *يتم تجميع البول فى وعاء نظيف وجاف يتم استلامه من المعمل.                                    
+                             *يقوم المريض بافراغ المثانة فى دورة المياه ويتم تسجيل الوقت ويكون هذا وقت البداية ثم يتم تجميع كل البول حتى اليوم التالى فى نفس ميعاد البداية مع الحرص على عدم فقد اى عينة ويفضل وضع الوعاء فى الثلاجة طول فترة التجميع ولحين احضار الوعاء الى المعمل.   
+                             *يجب أن تصل العينة الي المعمل بعد ساعتين كحد أقصى من الانتهاء من التجميع.`
+        },
+          {
+            name: " (A DS D N A-ANTI DOUBLE STRANADED DNA TITER-Anti DNA (IF)-Anti DNA-Ds-تحليل الذئبة)",
+            keys: ["A DS D N A", "ANTI DOUBLE STRANADED DNA TITER", "Anti DNA (IF)", "Anti DNA-Ds","تحليل الذئبة","الامراض المناعية للذئبة"],
+            getNotes: () => `ليس لها شروط والاستلام خلال اسبوع `
+        },
+         {
+            name: " (ANA immunoplot / microblot -A.N.A -تحليل امراض مناعية للروماتويد-Antinuclear Antibody-ANA ( by ELISA )-ANA (by IF)-ANA Profile-ENA Profile)",
+            keys: ["ANA immunoplot / microblot", "A.N.A", "تحليل امراض مناعية للروماتويد", "Antinuclear Antibody","ANA ( by ELISA )","ANA (by IF)","NA Profile-ENA Profile"],
+            getNotes: () => `ليس لها شروط والاستلام خلال اسبوع`
+        },
+         {
+            name: " (A.M.A -AMA ( Anti Mitochondrial Ab) )",
+            keys: ["AMA ( Anti Mitochondrial Ab)", "A.M.A"],
+            getNotes: () => `ليس لها شروط والاستلام من 5ايام لاسبوع`
+        },
+         {
+            name: " (A.SM.A - ASMA ( Anti-smooth muscle antibody ))",
+            keys: ["ASMA ( Anti-smooth muscle antibody )", "A.SM.A"],
+            getNotes: () => `ليس لها شروط والاستلام من 5ايام لاسبوع`
+        },
+        {
+            name: "سكر صائم (Fasting Blood Sugar - FBS)",
+            keys: ["fbs", "fasting blood", "sugar fasting", "سكر صائم"],
+            getNotes: () => `صيام تام من 6 إلى 8 ساعات كاملة (مسموح بشرب الماء النقي فقط، وممنوع التدخين أو المنبهات)).`
+        },
+        {
+            name: "سكر عشوائي (Random Blood Sugar - RBS)",
+            keys: ["random", "rbs", "سكر عشوائي"],
+            getNotes: () => `لا يشترط الصيام، ويتم سحب العينة في أي وقت خلال اليوم.`
+        },
+        {
+            name: "صورة دم كاملة (CBC / Complete Blood Picture)",
+            keys: ["cbc", "blood picture", "blood count", "صورة دم"],
+            getNotes: () => `لا يشترط الصيام التام، ويفضل شرب كميات كافية من الماء وتجنب الإجهاد البدني العنيف قبل السحب.`
+        },
+        {
+            name: "وظائف كبد (Albumin / SGOT / AST / SGPT / ALT)",
+            keys: ["albumin", "ast", "sgot", "alt", "sgpt", "كبد"],
+            getNotes: () => `لا يشترط الصيام التام، ويفضل تجنب الأطعمة الدسمة في الوجبة السابقة للسحب مباشرة.`
+        },
+        {
+            name: "وظائف كلى (Creatinine / BUN / Blood Urea)",
+            keys: ["creatinine", "creatinen", "bun", "urea", "كلى"],
+            getNotes: () => `يفضل صيام خفيف من 4 إلى 6 ساعات، مع تجنب تناول كميات مفرطة من اللحوم الحمراء قبل الفحص بيوم.`
+        },
+        {
+            name: "أملاح ومعادن الدم (Sodium / Potassium)",
+            keys: ["sodium", "potassium", "املاح"],
+            getNotes: () => `لا يشترط الصيام، ولكن يلزم إبلاغ المعمل بأي أدوية ضغط أو مدرات بول تؤخذ بانتظام.`
+        },
+        {
+            name: "حديد السيرم (Serum Iron)",
+            keys: ["serum iron", "iron"],
+            getNotes: () => `صيام من 8 إلى 12 ساعة، ويسحب صباحاً في وقت مبكر لتجنب التغير اليومي لمستوى الحديد.`
+        },
+        {
+            name: "تحليل بول كامل (Complete Urine Analysis)",
+            keys: ["urine", "complete urine", "بول"],
+            getNotes: () => `عينة بول صباحية أولى، مع غسل المنطقة وتطهيرها بالماء، وأخذ عينة منتصف البول (Mid-stream) في عبوة معقمة.`
+        },
+        {
+            name: "تحليل براز (Stool Analysis)",
+            keys: ["stool", "براز"],
+            getNotes: () => `تجمع العينة في الوعاء المعقم بدون اختلاطها بماء المرحاض أو البول، وتُسلم للمختبر خلال ساعتين كحد أقصى.`
+        },
+        {
+            name: "سونار البطن والحوض (Ultrasound Abdomen & Pelvis)",
+            keys: ["ultrasound", "ultrasondg", "abdomen", "pevis", "pelvis", "سونار"],
+            getNotes: () => `صيام 6 إلى 8 ساعات عن الأكل لفحص البطن، وشرب لتر ماء وحبس البول لامتلاء المثانة لفحص الحوض.`
+        }
+    ];
+
+    function loadFile(input) {
         if (!input.files || !input.files[0]) return;
-
-        const file = input.files[0];
         const reader = new FileReader();
-
         reader.onload = (e) => {
-            const preview = document.getElementById('imagePreview');
-            preview.src = e.target.result;
-            document.getElementById('previewContainer').style.display = 'block';
-
-            const base64Data = e.target.result.split(',')[1];
-            const mimeType = file.type || 'image/jpeg';
-            analyzeWithGemini(base64Data, mimeType);
+            rawImg.onload = () => {
+                // إذا كانت الصورة رأسية مثل صورتك، يدورها المحرك 90 درجة تلقائياً لتصبح أفقية ومقروءة
+                currentAngle = rawImg.height > rawImg.width ? 90 : 0;
+                applyCanvasTransform();
+                document.getElementById('previewContainer').style.display = 'block';
+                startScan();
+            };
+            rawImg.src = e.target.result;
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(input.files[0]);
     }
 
-    async function analyzeWithGemini(base64Image, mimeType) {
-        const overlay = document.getElementById('loadingOverlay');
-        overlay.style.display = 'flex';
-
-        const gender = document.querySelector('input[name="gender"]:checked').value;
-
-        const promptText = `
-أنت استشاري تحاليل طبية وخبير في نظام DotCare.
-المهمة:
-1. افحص الصورة واستخرج كافة الفحوصات والتحاليل المكتوبة فيها بدقة، حتى لو كانت الصورة رأسية أو مائلة أو خط يد أو مطبوعة باختصارات (مثل: ALBUMIN, AST, SGOT, BUN, CBC, URINE, CREATININE, POTASSIUM, SODIUM, STOOL, VITAMIN D, ULTRASOUND... إلخ).
-2. حدد شروط التحضير والسحب لكل فحص باللغة العربية بأسلوب واضح وسهل للمريض.
-3. حالة المريض الحالية: [${gender}].
-   - إذا وُجد تحليل Vitamin D أو V.D وكانت الحالة (أنثى): يجب التنبيه بوضوح أنه لا يتم السحب أثناء فترة الدورة الشهرية (البريود)، ويتم السحب بعد الانتهاء منها بـ 48 ساعة.
-   - إذا كان التحليل يتطلب صياماً، حدد ساعات الصيام بدقة وشرب الماء فقط.
-
-أخرج النتيجة بصيغة JSON فقط كالتالي دون أي مقدمات أو علامات إضافية:
-[
-  {
-    "test_name": "اسم التحليل مع اختصاره",
-    "instructions": "شروط التحضير والسحب بالتفصيل",
-    "is_critical_female": true
-  }
-]`;
-
-        try {
-            // تم التحديث للموديل المطلوب بالضبط في رسالة الخطأ
-            const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-goog-api-key': getSecureKey()
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { text: promptText },
-                            { inlineData: { mimeType: mimeType, data: base64Image } }
-                        ]
-                    }]
-                })
-            });
-
-            const data = await response.json();
-            overlay.style.display = 'none';
-
-            if (!response.ok) {
-                alert('خطأ في الخدمة: ' + (data.error ? data.error.message : 'تعذر الاتصال'));
-                return;
-            }
-
-            let textResponse = data.candidates[0].content.parts[0].text;
-            textResponse = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-            const results = JSON.parse(textResponse);
-            displayResults(results);
-
-        } catch (error) {
-            overlay.style.display = 'none';
-            alert('حدث خطأ أثناء فحص الصورة: ' + error.message);
-            console.error(error);
-        }
+    function rotateManual(deg) {
+        currentAngle = (currentAngle + deg) % 360;
+        applyCanvasTransform();
+        startScan();
     }
 
-    function displayResults(tests) {
-        const resultsList = document.getElementById('resultsList');
-        const resultsSection = document.getElementById('resultsSection');
-        resultsList.innerHTML = '';
+    function applyCanvasTransform() {
+        const cvs = document.getElementById('procCanvas');
+        const ctx = cvs.getContext('2d');
+        const rad = (currentAngle * Math.PI) / 180;
 
-        if (!Array.isArray(tests) || tests.length === 0) {
-            resultsList.innerHTML = '<div class="test-result-card"><p>لم يتم العثور على تحاليل واضحة في الصورة.</p></div>';
+        if (Math.abs(currentAngle) === 90 || Math.abs(currentAngle) === 270) {
+            cvs.width = rawImg.height;
+            cvs.height = rawImg.width;
         } else {
-            tests.forEach(item => {
-                const card = document.createElement('div');
-                card.className = `test-result-card ${item.is_critical_female ? 'warning-female' : ''}`;
-                card.innerHTML = `
-                    <h4>📋 ${item.test_name}</h4>
-                    <p>${item.instructions}</p>
-                    ${item.is_critical_female ? '<div class="alert-box">⚠️ تنبيه خاص بالحالة (أنثى): مراعاة موعد الدورة الشهرية</div>' : ''}
-                `;
-                resultsList.appendChild(card);
-            });
+            cvs.width = rawImg.width;
+            cvs.height = rawImg.height;
         }
 
-        resultsSection.style.display = 'block';
-        resultsSection.scrollIntoView({ behavior: 'smooth' });
+        ctx.clearRect(0, 0, cvs.width, cvs.height);
+        ctx.save();
+        ctx.translate(cvs.width / 2, cvs.height / 2);
+        ctx.rotate(rad);
+        ctx.drawImage(rawImg, -rawImg.width / 2, -rawImg.height / 2);
+        ctx.restore();
+
+        document.getElementById('imagePreview').src = cvs.toDataURL();
+    }
+
+    function startScan() {
+        const cvs = document.getElementById('procCanvas');
+        const overlay = document.getElementById('loadingOverlay');
+        const msg = document.getElementById('loadingMsg');
+
+        overlay.style.display = 'flex';
+        msg.innerText = 'جارٍ فحص الروشتة وقراءة التحاليل...';
+
+        Tesseract.recognize(cvs, 'eng', {
+            logger: m => {
+                if (m.status === 'recognizing text') {
+                    msg.innerText = `جارٍ القراءة: ${Math.round(m.progress * 100)}%`;
+                }
+            }
+        }).then(({ data: { text } }) => {
+            overlay.style.display = 'none';
+            parseAndShow(text);
+        }).catch(() => {
+            overlay.style.display = 'none';
+            alert('يرجى التأكد من وضوح الصورة وإعادة المحاولة.');
+        });
+    }
+
+    function parseAndShow(extractedText) {
+        const lower = extractedText.toLowerCase();
+        const isFemale = document.querySelector('input[name="gender"]:checked').value === 'أنثى';
+        const listDiv = document.getElementById('resultsList');
+        const sec = document.getElementById('resultsSection');
+
+        listDiv.innerHTML = '';
+        let found = [];
+
+        medicalRules.forEach(rule => {
+            const matched = rule.keys.some(k => lower.includes(k));
+            if (matched) found.push(rule);
+        });
+
+        if (found.length > 0) {
+            found.forEach(item => {
+                const card = document.createElement('div');
+                const isWarning = item.name.includes("Vitamin D") && isFemale;
+                card.className = `test-result-card ${isWarning ? 'warning-female' : ''}`;
+                card.innerHTML = `
+                    <h4>📋 ${item.name}</h4>
+                    <p>${item.getNotes(isFemale)}</p>
+                `;
+                listDiv.appendChild(card);
+            });
+        } else {
+            listDiv.innerHTML = `
+                <div class="test-result-card" style="border-right-color: #f59e0b;">
+                    <h4>لم تظهر التحاليل بدقة كافية</h4>
+                    <p>اضغطي زر (تدوير يمين 🔄) ثم (إعادة الفحص) لمطابقة اتجاه السطور أفقياً مع الكاميرا.</p>
+                </div>
+            `;
+        }
+
+        sec.style.display = 'block';
+        sec.scrollIntoView({ behavior: 'smooth' });
     }
 </script>
 
