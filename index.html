@@ -63,24 +63,6 @@
         #previewContainer { display: none; margin-top: 15px; text-align: center; }
         #imagePreview { max-width: 100%; max-height: 240px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.2); }
 
-        .rotate-bar {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            margin-top: 10px;
-        }
-
-        .btn-sub {
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.25);
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            cursor: pointer;
-        }
-
-        /* نافذة التحميل المشوشة */
         .loading-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -114,7 +96,6 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* نتائج الفحص */
         .results-section { margin-top: 20px; display: none; }
         .results-section h3 { font-size: 1.1rem; margin-bottom: 12px; color: var(--accent); }
 
@@ -149,7 +130,7 @@
 <div class="container">
     <header>
         <h1>الماسح الذكي لتحضيرات التحاليل</h1>
-        <p>فحص وقراءة فورية للروشتات دون الحاجة لأي مفاتيح أو اشتراكات</p>
+        <p>مسح ذكي تلقائي وقاعدة بيانات DotCare المعتمدة</p>
     </header>
 
     <div class="controls-card">
@@ -169,19 +150,14 @@
 
         <div id="previewContainer">
             <img id="imagePreview" alt="معاينة الروشتة">
-            <div class="rotate-bar">
-                <button class="btn-sub" onclick="rotateManual(-90)">🔄 تدوير يسار</button>
-                <button class="btn-sub" onclick="rotateManual(90)">🔄 تدوير يمين</button>
-                <button class="btn-sub" style="background: var(--accent);" onclick="startScan()">🔍 إعادة الفحص</button>
-            </div>
         </div>
     </div>
 
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-card">
             <div class="spinner"></div>
-            <h3>Loading...</h3>
-            <p id="loadingMsg" style="font-size: 0.85rem; color: #b2dfdb;">جارٍ معالجة الروشتة وتدوير الأسطر...</p>
+            <h3>جاري الفحص...</h3>
+            <p id="loadingMsg" style="font-size: 0.85rem; color: #b2dfdb;">تحليل خطوط الروشتة ومطابقة تحاليل DotCare...</p>
         </div>
     </div>
 
@@ -191,452 +167,433 @@
     </div>
 </div>
 
-<canvas id="procCanvas" style="display:none;"></canvas>
-
 <script>
     let rawImg = new Image();
-    let currentAngle = 0;
 
-    // بنك تحاليل DotCare المعتمدة مع كافة الاختصارات
     const medicalRules = [
+        // --- التحاليل الروتينية الشائعة ---
         {
             name: "فيتامين د (Vitamin D / 25-OH)",
-            keys: ["vitamin d", "vaitamin", "vit d", "v.d", "25-oh"],
+            test: (t) => /vitamin\s*d|vit\s*d|v\.d|25-oh/i.test(t),
             getNotes: (isFemale) => isFemale 
                 ? `يفضل إجراؤه صباحاً.<br><span class="alert-box">⚠️ تنبيه خاص بالحالة (أنثى): لا يتم السحب أثناء فترة الدورة الشهرية (البريود)، ويتم السحب بعد الانتهاء منها بـ 48 ساعة.</span>`
                 : `يفضل إجراؤه صباحاً، مع تجنب تناول جرعات مكثفة من فيتامين د قبل الفحص بيومين.`
         },
-         {
-            name: "( 24 HOURS URINE CATECHOLAMINE-VMA (Vanillylmandelic Acid)-Urine Metanephrines)",
-            keys: ["DA (Dopamine - الدوبامين)", "NE (Norepinephrine - النورأدرينالين)", "Epi (Epinephrine - الأدرينالين)", "VMA (Vanillylmandelic Acid)","Metanephrine in urine","Urine Metanephrines","MNs"," MET للميتانيفرين","NMN للنورميتانفرين", "CATECHOLAMINE in urine","VMA (Vanillylmandelic Acid)"],
-            getNotes: () => `*يتم تجميع عينة بول 24 ساعة.                                                                                           
-                             *يجب الامتناع عن تناول المأكولات التى تحتوى على الفانيليا, الموز,المكسرات, الشاى, الكافيين, الشيكولاتة لمدة 3-4 ايام قبل التجميع.                                                                         
-                             * يجب ايقاف الأدوية التالية (قطرات الأنف ,عقاقير الكحة, موسعات الشعب الهوائية , مثبطات الشهية, أدوية الاكتئاب, أدوية الضغط (الا أراد الطبيب غير ذلك) لمدة 3-4 أيام قبل التجميع.
-                             *يتم تجميع البول فى وعاء نظيف وجاف يتم استلامه من المعمل.                                    
-                             *يقوم المريض بافراغ المثانة فى دورة المياه ويتم تسجيل الوقت ويكون هذا وقت البداية ثم يتم تجميع كل البول حتى اليوم التالى فى نفس ميعاد البداية مع الحرص على عدم فقد اى عينة ويفضل وضع الوعاء فى الثلاجة طول فترة التجميع ولحين احضار الوعاء الى المعمل.   
-                             *يجب أن تصل العينة الي المعمل بعد ساعتين كحد أقصى من الانتهاء من التجميع.`
-        },
-          {
-            name: " أمراض مناعية للذائبة (ANTI DOUBLE STRANADED DNA )",
-            keys: ["A DS D N A", "ANTI DOUBLE STRANADED DNA TITER", "Anti DNA (IF)", "Anti DNA-Ds","تحليل الذئبة","الامراض المناعية للذئبة"],
-            getNotes: () => `ليس لها شروط والاستلام خلال اسبوع `
-        },
-         {
-            name: " أمراض مناعية للروماتويد (Antinuclear Antibody)",
-            keys: ["ANA immunoplot / microblot", "A.N.A", "تحليل امراض مناعية للروماتويد", "Antinuclear Antibody","ANA ( by ELISA )","ANA (by IF)","NA Profile-ENA Profile"],
-            getNotes: () => `ليس لها شروط والاستلام خلال اسبوع`
-        },
-         {
-            name: " أمراض مناعية (AMA ( Anti Mitochondrial Ab) )",
-            keys: ["AMA ( Anti Mitochondrial Ab)", "A.M.A"],
-            getNotes: () => `ليس لها شروط والاستلام من 5ايام لاسبوع`
-        },
-         {
-            name: " أمراض مناعية (ASMA ( Anti-smooth muscle antibody ))",
-            keys: ["ASMA ( Anti-smooth muscle antibody )", "A.SM.A"],
-            getNotes: () => `ليس لها شروط والاستلام من 5ايام لاسبوع`
-        },
-         {
-            name: "أمراض الرئة والمناعة ( ACE (ANGIOTENSIN CONVERTING ENZYME) )",
-            keys: ["ACE", "S-ACE", "ANGIOTENSIN CONVERTING ENZYME", ""],
-            getNotes: () => `ليس لها شروط والاستلام من 3 ل5 ايام`
-        },
-         {
-            name: " هرمون الغدة الجار الكظرية(ACTH (AM)/ACTH (P.M))",
-            keys: ["ACTH MORNING", "ACTH(AM)", "acth(am)","ACTH (P.M)","ACTH (PM)","acth(pm)"],
-            getNotes: () => `يتم سحب عينة الدم من الساعة الثامنة صباحا او مساءا (يجب ألا يتعدى السحب الساعة التاسعة) ولا يشترط صيام.`
-        },
-        {
-            name: "فوسفاتيز حمضي (ACID PHOSPHATASE)",
-            keys: ["acid phosphatase", "204003", "acp"],
-            getNotes: () => `يفضل صيام خفيف (4 إلى 6 ساعات). يمنع لمس أو فحص البروستاتا قبل التحليل بـ 48 ساعة لتجنب الارتفاع الكاذب للإنزيم.`
-        },
-        {
-            name: "مقاومة البروتين سي المنشط (ACTIVATED PROTEIN C RESISTANCE)",
-            keys: ["activated protein c resistance", "apcr", "209001", "apc resistance"],
-            getNotes: () => `لا يشترط الصيام التام. يشترط عدم تناول أدوية السيولة ومضادات التخثر (مثل الهيبارين أو الوارفارين) إلا بتعليمات الطبيب المعالج.
-                             مطلوب الشكوى والسن وبالنسبة للسيدات هل يوجد حمل ؟
-                             هل يوجد عالج سيولة واسم العالج ؟ `
-        },
-        {
-            name: "أداليموماب والأجسام المضادة (Adalimumab Trough level and Anti Adalimumab Antibody level)",
-            keys: ["adalimumab", "anti adalimumab", "labservice290", "humira level"],
-            getNotes: () => `تسحب العينة قبل موعد جرعة الدواء التالية مباشرة (Trough Level) لتحديد تركيز الدواء الأدنى في الدم بدقة.`
-        },
-        {
-            name: "فحص نشاط إنزيم أدامتس (ADAMTS13)",
-            keys: ["adamts13", "adamts 13", "3035710", "adamts"],
-            getNotes: () => `يفضل أخذ العينة قبل البدء في نقل بلازما الدم أو العلاجات المثبطة للمناعة لتفادي النتائج غير الدقيقة.`
-        },
-        {
-            name: "إنزيم أدينوزين ديميناز (ADENOSINE-DEAMINASE)",
-            keys: ["adenosine-deaminase", "ada", "204004", "adenosine deaminase"],
-            getNotes: () => `لا يشترط الصيام. سواء كانت العينة دماً أو سوائل جسمية، يجب نقلها فوراً للمختبر وفصلها سريعاً.`
-        },
-        {
-            name: "الهرمون المانع لإدرار البول (ADH)",
-            keys: ["adh", "210005", "antidiuretic hormone", "vasopressin"],
-            getNotes: () => `صيام من 8 إلى 12 ساعة مع الامتناع عن شرب السوائل وفق تعليمات الطبيب، وتجنب التدخين والكافيين قبل الفحص بيوم.`
-        },
-        {
-            name: "أجسام مضادة لقشرة الكظر (Adrenal cortical antibodies)",
-            keys: ["adrenal cortical antibodies", "labservice289", "aca", "adrenal antibodies"],
-            getNotes: () => `لا يشترط الصيام التام، ولكن يفضل الامتناع عن الأطعمة الدسمة قبل السحب بعدة ساعات.`
-        },
-        {
-            name: "زلال الدم (ALBUMIN)",
-            keys: ["albumin", "204005", "البومين", "البيومين"],
-            getNotes: () => `لا يشترط الصيام التام، ويفضل تجنب الأغذية عالية الدسم والبروتين قبل إجراء الفحص مباشرة.`
-        },
-        {
-            name: "زلال سائل الاستسقاء (ALBUMIN IN ASCITIC FLUID)",
-            keys: ["albumin in ascitic fluid", "ascitic fluid albumin", "labservice77"],
-            getNotes: () => `عينة سائل استسقاء بريتوني يتم سحبها تحت إشراف طبي معقم، وتُرسل للمختبر فوراً مع عينة دم متزامنة لحساب نسبة SAAG.`
-        },
-        {
-            name: "زلال البول النوعي (ALBUMIN IN URINE [QUALITATIVE])",
-            keys: ["albumin in urine", "urine albumin", "221003", "زلال البول"],
-            getNotes: () => `يفضل عينة بول صباحية أولى بعد تنظيف وتطهير المنطقة بالماء، مع تجنب التمارين الرياضية الشاقة قبل الفحص.`
-        },
-        {
-            name: "نسبة الزلال إلى الجلوبيولين (ALBUMIN/ GLOBULIN RATIO [A/G])",
-            keys: ["albumin/ globulin ratio", "a/g ratio", "2040018", "a/g"],
-            getNotes: () => `لا يشترط الصيام التام، ويفضل الامتناع عن الوجبات الغنية بالدهون والبروتينات الكثيفة قبل سحب الدم مباشرة.`
-        },
-        {
-            name: "نسبة الزلال إلى الكرياتينين في البول (ALBUMIN/CREATININE RATIO - ACR)",
-            keys: ["albumin/creatinine ratio", "acr", "221004", "microalbumin"],
-            getNotes: () => `عينة بول صباحية عشوائية نظيفة (يفضل الأولى)، ويجب تجنب بذل مجهود عضلي عنيف قبل الفحص بـ 24 ساعة، وتجنب الفحص في حالات الحمى الشديدة.`
-        },
-        {
-            name: "كحول الدم (ALCOHOL IN BLOOD)",
-            keys: ["alcohol in blood", "blood alcohol", "207001", "etoh"],
-            getNotes: () => `سحب عينة دم وريدي، وتنبيه صارم: يُمنع استخدام الكحول أو مسحات الإيثانول لتطهير الجلد قبل وخز الإبرة ويُستبدل بمطهر آخر كاليود أو الماء والصابون.`
-        },
-        {
-            name: "كحول اللعاب (ALCOHOL IN SALIVA)",
-            keys: ["alcohol in saliva", "207002", "saliva alcohol"],
-            getNotes: () => `الامتناع التام عن تناول أي طعام، شراب، تدخين، أو استخدام غسول فموي لمدة لا تقل عن 15 إلى 20 دقيقة قبل أخذ المسحة/العينة.`
-        },
-        {
-            name: "كحول البول (Alcohol in urine)",
-            keys: ["alcohol in urine", "urine alcohol", "labservice15"],
-            getNotes: () => `عينة بول نظيفة في عبوة معقمة محكمة الإغلاق لمنع تطاير المركبات، وتُسلّم للمختبر فوراً.`
-        },
-        {
-            name: "إنزيم ألدولاز (ALDOLASE)",
-            keys: ["aldolase", "204006"],
-            getNotes: () => `صيام من 8 إلى 12 ساعة، مع الراحة التامة والامتناع عن ممارسة أي أنشطة أو تمارين عضلية شاقة قبل السحب لتفادي ارتفاع الإنزيم كاذباً.`
-        },
-        {
-            name: "هرمون ألدوستيرون (ALDOSTERONE)",
-            keys: ["aldosterone", "210006", "الدوستيرون"],
-            getNotes: () => `يلزم الاستلقاء أو الجلوس بهدوء لمدة 30 دقيقة قبل السحب مباشرة، مع الالتزام بتعليمات الطبيب بخصوص كمية الملح في الطعام وأدوية الضغط المدرة للبول.`
-        },
-        {
-            name: "نسبة الألدوستيرون إلى الرينين (ALDOSTERONE RENIN RATIO - ARR)",
-            keys: ["aldosterone renin ratio", "arr", "204007"],
-            getNotes: () => `تسحب العينة صباحاً بعد الاستيقاظ بساعتين على الأقل، ويشترط الجلوس في حالة راحة لمدة 15 إلى 30 دقيقة قبل السحب، ومراجعة أدوية الضغط مع الطبيب المعالج.`
-        },
-        {
-            name: "إنزيم الفوسفاتاز القلوي (ALKALINE PHOSPHATASE - ALP)",
-            keys: ["alkaline phosphatase", "alp", "204008"],
-            getNotes: () => `صيام من 8 إلى 10 ساعات ويفضل سحبه صباحاً لتجنب تغير مستويات الإنزيم بتأثير الوجبات الغنية بالدهون.`
-        },
-        {
-            name: "إنزيم ألفا جلوكوزيداز في السائل المنوي (ALPHA GLUCOSIDASE IN SEMINAL FLUID)",
-            keys: ["alpha glucosidase", "seminal fluid", "labservice80"],
-            getNotes: () => `عينة سائل منوي في عبوة معقمة، يشترط الامتناع عن الجماع والقذف لمدة من 3 إلى 5 أيام قبل التحليل، وتُسلم للمختبر خلال 30 إلى 60 دقيقة.`
-        },
-        {
-            name: "ألفا 1 ميكروجلوبيولين (ALPHA-1 MICROGLOBULIN)",
-            keys: ["alpha-1 microglobulin", "204010", "alpha 1 microglobulin"],
-            getNotes: () => `لا يشترط الصيام التام إذا كانت عينة دم، أما في عينات البول فتؤخذ عينة صباحية أولى نظيفة أو تجميع بول 24 ساعة حسب طلب الطبيب.`
-        },
-        {
-            name: "ألفا 1 أنتي تريبسين (ALPHA-1-ANTITRYPSIN)",
-            keys: ["alpha-1-antitrypsin", "aat", "204009", "alpha 1 antitrypsin"],
-            getNotes: () => `يفضل صيام من 4 إلى 8 ساعات، وتجنب إجرائه أثناء وجود التهابات حادة أو نزلات برد شديدة لأن مستواه يرتفع كرد فعل مناعي مؤقت.`
-        },
-        {
-            name: "ألفا فيتو بروتين (ALPHA-FETOPROTEIN [AFP])",
-            keys: ["alpha-fetoprotein", "afp", "220001", "alpha fetoprotein"],
-            getNotes: () => `لا يشترط الصيام التام، وإذا كان الفحص لمتابعة الحمل فيجب تسجيل العمر الجنيني وتاريخ آخر دورة شهرية بدقة.`
-        },
-        {
-            name: "مستوى الألومنيوم في الدم (ALUMINIUM LEVEL)",
-            keys: ["aluminium level", "aluminum", "labservice81"],
-            getNotes: () => `يمنع تناول مضادات الحموضة المحتوية على الألومنيوم قبل التحليل بـ 24 ساعة، وتُسحب العينة بأنبوبة مخصصة خالية من المعادن لتفادي التلوث.`
-        },
-        {
-            name: "مخطط الأحماض الأمينية بالبلازما (AMINOGRAM [PLASMA])",
-            keys: ["aminogram", "amino acids", "labservice82", "plasma amino acids"],
-            getNotes: () => `صيام تام من 8 إلى 12 ساعة (للبالغين) أو 4 ساعات (للرضع)، مع سحب العينة على أنبوبة هيبارين وفصل البلازما وتجميدها فوراً.`
-        },
-        {
-            name: "مخطط الأحماض الأمينية بالبول (AMINOGRAM [URINE])",
-            keys: ["aminogram (urine)", "aminogram urine", "labservice83"],
-            getNotes: () => `عينة بول صباحية أولى نظيفة أو تجميع بول 24 ساعة وفق طلب الطبيب، وتُحفظ العينة مثلجة أو مجمدة حتى تسليمها للمختبر فوراً.`
-        },
-        {
-            name: "حمض أمينوليفيولينيك في البول (aminolevulinic acid in urine - ALA)",
-            keys: ["aminolevulinic acid in urine", "4535762", "ala in urine", "delta ala"],
-            getNotes: () => `تجميع بول 24 ساعة في وعاء معتم، مع ضرورة حفظ الوعاء في مكان مظلم وبارد تماماً وحمايته من التعرض للضوء طوال فترة التجميع.`
-        },
-        {
-            name: "أمونيا الدم (AMMONIA)",
-            keys: ["ammonia", "204011", "امونيا"],
-            getNotes: () => `صيام من 6 إلى 8 ساعات، والامتناع التام عن التدخين قبل السحب بيوم، وتسحب العينة على أنبوبة EDTA مثلجة فوراً وتُفصل خلال 15 دقيقة.`
-        },
-        {
-            name: "إنزيم أميليز (AMYLASE)",
-            keys: ["amylase", "204012", "اميليز"],
-            getNotes: () => `يفضل صيام من 2 إلى 4 ساعات عن الطعام، وتجنب تناول الكحول ومسكنات الألم الأفيونية قبل الفحص لتفادي ارتفاع الإنزيم كاذباً.`
-        },
-        {
-            name: "بروتين أميلويد أ (AMYLOID A PROTEIN - SAA)",
-            keys: ["amyloid a protein", "204013", "saa protein", "amyloid a"],
-            getNotes: () => `لا يشترط الصيام التام، لكن يفضل صيام خفيف (4 ساعات) عن الأطعمة الدسمة، وهو مؤشر لالتهابات الجسم الحادة.`
-        },
-        {
-            name: "أميلويد بيتا 1-42 (Amyloid beta 1-42)",
-            keys: ["amyloid beta 1-42", "3435759", "amyloid beta"],
-            getNotes: () => `عينة سائل نخاع شوكي (CSF) تجمع تحت إشراف طبي معقم في أنابيب بولي بروبيلين خاصة منخفضة الارتباط، وتُجمد فوراً.`
-        },
-        {
-            name: "لطخة مناعية للأجسام المضادة للنواة (ANA immunoplot / microblot)",
-            keys: ["ana immunoplot", "ana microblot", "labservice275", "ana blot", "ana profile"],
-            getNotes: () => `لا يشترط الصيام، ويفضل سحب العينة صباحاً وتجنب أخذ عينات دم متحللة أو شديدة الدسامة لضمان دقة الشرائح المناعية.`
-        },
-        {
-            name: "هرمون أندروستينيديون (ANDROSTENEDIONE)",
-            keys: ["androstenedione", "210007", "androstendione"],
-            getNotes: () => `يفضل سحب العينة صباحاً (حيث يصل لأعلى مستوياته). للسيدات: يفضل إجراؤه في الأسبوع الأول بعد بدء الدورة الشهرية أو حسب توجيهات الطبيب المعالج.`
-        },
-        {
-            name: "فجوة الأنيونات (ANION GAP)",
-            keys: ["anion gap", "204014", "فجوة الانيونات"],
-            getNotes: () => `تحليل حسابي يُستنتج من قياس أملاح الدم (الصوديوم، البوتاسيوم، الكلورايد والبيكربونات)؛ يفضل صيام خفيف من 4 إلى 6 ساعات.`
-        },
-        {
-            name: "أجسام مضادة للكارديوليبين نوع IgG (ANTI - CARDIOLIPIN IGG)",
-            keys: ["anti - cardiolipin igg", "anti cardiolipin igg", "acl igg", "201015"],
-            getNotes: () => `لا يشترط الصيام التام، ويفضل إجراؤه قبل بدء أدوية السيولة أو استشارة الطبيب المعالج إن كان يُجرى لمتابعة حالات الإجهاض المتكرر أو التجلطات.`
-        },
-        {
-            name: "أجسام مضادة للكارديوليبين نوع IgM (ANTI - CARDIOLIPIN IGM)",
-            keys: ["anti - cardiolipin igm", "anti cardiolipin igm", "acl igm", "201016"],
-            getNotes: () => `لا يشترط الصيام، ويُطلب عادة مع الـ IgG لتقييم متلازمة أضداد الفوسفوليبيد الحادة وتجلطات الدم.`
-        },
-        {
-            name: "أجسام مضادة للإنسولين (ANTI - INSULIN AB)",
-            keys: ["anti - insulin ab", "anti insulin", "insulin antibodies", "201017"],
-            getNotes: () => `صيام من 8 إلى 10 ساعات، ويجب أخذ العينة قبل أخذ جرعة الإنسولين الصباحية، مع إبلاغ المختبر بنوع الإنسولين المستخدم ومدة العلاج.`
-        },
-        {
-            name: "أجسام مضادة جو-1 (ANTI - JO- 1)",
-            keys: ["anti - jo- 1", "anti jo 1", "anti jo-1", "jo 1", "201018"],
-            getNotes: () => `لا يشترط الصيام، ويُستخدم لتشخيص التهابات العضلات المناعية وأمراض النسيج الضام، ويفضل تجنب العينات شديدة الدهون.`
-        },
-        {
-            name: "أجسام مضادة SSA / Ro (ANTI - SSA [RO] AB)",
-            keys: ["anti - ssa (ro) ab", "anti ssa", "anti-ro", "ssa ab", "201019"],
-            getNotes: () => `لا يشترط الصيام، ويُطلب لتشخيص متلازمة شوغرن والذئبة الحمراء، وله أهمية خاصة لمتابعة الحوامل لتفادي متلازمة الذئبة الوليدية.`
-        },
-        {
-            name: "أجسام مضادة SSB / La (ANTI - SSB [LA] AB)",
-            keys: ["anti - ssb ( la ) ab", "anti ssb", "anti-la", "ssb ab", "201020"],
-            getNotes: () => `لا يشترط الصيام، ويُجرى بالتزامن مع فحص Anti-SSA لتأكيد تشخيص الأمراض المناعية الذاتية المرتبطة بجفاف العين والفم.`
-        },
-        {
-            name: "أجسام مضادة للأنيكسين V نوع IgG (Anti annexin V IgG)",
-            keys: ["anti annexin v igg", "annexin v igg", "labservice302"],
-            getNotes: () => `لا يشترط الصيام، ويفضل تسجيل التاريخ الدوائي لأدوية السيولة؛ يُطلب ضمن فحوصات التجلط والإجهاض المناعي.`
-        },
-        {
-            name: "أجسام مضادة للأنيكسين V نوع IgM (Anti annexin V IgM)",
-            keys: ["anti annexin v igm", "annexin v igm", "labservice303"],
-            getNotes: () => `لا يشترط الصيام، ويقيس الأجسام المضادة الحديثة أو النشطة المرتبطة بقابلية التخثر وفقدان الحمل المبكر.`
-        },
-        {
-            name: "أجسام مضادة للغشاء القاعدي (ANTI BASMENT MEMBRANE ABS - GBM)",
-            keys: ["anti basment membrane abs", "anti gbm", "gbm antibodies", "2040011"],
-            getNotes: () => `لا يشترط الصيام، ويفضل أخذ العينة قبل البدء في جلسات الغسيل الكلوي أو تنقية البلازما (Plasmapheresis) إن وُجدت.`
-        },
-        {
-            name: "أجسام مضادة للبلهارسيا (ANTI BILHARZIAL ANTIBODIES [IHA])",
-            keys: ["anti bilharzial antibodies", "bilharzial antibodies", "iha bilharzia", "215001"],
-            getNotes: () => `لا يشترط الصيام التام، وتُسحب عينة دم وريدي على أنبوبة سيرم عادية للكشف عن الأجسام المضادة لبلهارسيا البول أو المستقيم.`
-        },
-        {
-            name: "أجسام مضادة للسنترومير (ANTI CENTROMERE AB)",
-            keys: ["anti centromere ab", "anti centromere", "aca antibodies", "201022"],
-            getNotes: () => `لا يشترط الصيام التام، ويُستخدم لتشخيص متلازمة كرست (CREST syndrome) والتصلب الجلدي المحدود.`
-        },
-        {
-            name: "أجسام مضادة للديسموجلين 1 نوع IgG (Anti D3G1 Ab IgG)",
-            keys: ["anti d3g1 ab igg", "anti dsg1", "desmoglein 1", "labservice305"],
-            getNotes: () => `لا يشترط الصيام، ويُستخدم لتشخيص ومتابعة أمراض الفقاع الجلدي المناعية (Pemphigus foliaceus).`
-        },
-        {
-            name: "أجسام مضادة للديسموجلين 3 (Anti D3G3 Ab)",
-            keys: ["anti d3g3 ab", "anti dsg3", "desmoglein 3", "labservice304"],
-            getNotes: () => `لا يشترط الصيام، ويُطلب لتشخيص مرض الفقاع الشائع (Pemphigus vulgaris) وإصابات الأغشية المخاطية.`
-        },
-        {
-            name: "أجسام مضادة لببتيد الجليادين منزوع الأميد نوع IgA (Anti DGP IgA)",
-            keys: ["anti dgp iga", "dgp iga", "2110002", "deamidated gliadin iga"],
-            getNotes: () => `يشترط عدم اتباع حمية خالية من الجلوتين قبل الفحص، بل يجب الاستمرار في تناول الأطعمة المحتوية على القمح والجلوتين لضمان دقة تشخيص حساسية القمح (السيلياك).`
-        },
-        {
-            name: "أجسام مضادة لببتيد الجليادين منزوع الأميد نوع IgG (Anti DGP IgG)",
-            keys: ["anti dgp igg", "dgp igg", "2110001", "deamidated gliadin igg"],
-            getNotes: () => `يشترط استمرار المريض في تناول الجلوتين قبل التحليل، ويفيد بشكل خاص للمرضى الذين يعانون من نقص المناعة الوراثي في IgA.`
-        },
-        {
-            name: "معيار الأجسام المضادة للحمض النووي مزدوج السلسلة (ANTI DOUBLE STRANADED DNA TITER)",
-            keys: ["anti double stranaded dna titer", "anti dsdna titer", "dsdna titer", "2040012"],
-            getNotes: () => `لا يشترط الصيام، ويُطلب لتشخيص ومتابعة نشاط مرض الذئبة الحمراء (SLE) والتهاب الكلى الذئبي.`
-        },
-        {
-            name: "نشاط مضاد العامل العاشر (ANTI- FACTOR X A ACTIVITY)",
-            keys: ["anti- factor x a activity", "anti factor xa", "anti xa", "209002"],
-            getNotes: () => `توقيت السحب حرج جداً: يجب سحب العينة بعد مرور 4 ساعات بالضبط من أخذ حقنة الهيبارين منخفض الوزن الجزيئي (LMWH)، مع تدوين نوع الجرعة وموعدها بدقة.`
-        },
-        {
-            name: "أجسام مضادة للفاشيولا / دودة الكبد (ANTI FASCIOLA AB)",
-            keys: ["anti fasciola ab", "fasciola antibodies", "215002", "فاشيولا"],
-            getNotes: () => `لا يشترط الصيام التام، وتُسحب عينة دم وريدي للكشف عن الأجسام المضادة لعدوى ديدان الفاشيولا الكبدية.`
-        },
-        {
-            name: "أجسام مضادة لإنزيم GAD في السائل النخاعي (Anti GAD in CSF)",
-            keys: ["anti gad in csf", "2533610", "gad in csf", "gad csf"],
-            getNotes: () => `عينة سائل نخاع شوكي (CSF) يتم سحبها تحت إشراف طبي معقم، وتُرسل مثلجة للمختبر فوراً لتقييم متلازمة الشخص المتصلب والتهابات الدماغ المناعية.`
-        },
-        {
-            name: "أجسام مضادة للخلايا الجدارية للمعدة (ANTI GASTRIC PARIETAL AB - APCA)",
-            keys: ["anti gastric parietal ab", "201023", "apca", "anti parietal"],
-            getNotes: () => `لا يشترط الصيام التام، ويفضل صيام خفيف (4 ساعات). يُطلب لتشخيص التهاب المعدة المناعي والأنيميا الخبيثة (Pernicious Anemia) ونقص فيتامين B12.`
-        },
-        {
-            name: "أجسام مضادة لنازع كربوكسيل حمض الجلوتاميك (ANTI GLUTAMIC ACID DECARBOXYLASE - Anti-GAD)",
-            keys: ["anti glutamic acid decarboxylase", "204015", "anti-gad", "anti gad 65"],
-            getNotes: () => `صيام من 8 إلى 10 ساعات، ويُستخدم لتشخيص السكري المناعي الذاتي من النوع الأول (Type 1 Diabetes) والسكري الكامن لدى البالغين (LADA).`
-        },
-        {
-            name: "أجسام مضادة للمكورات المشوكة / الأكياس المائية (ANTI HYDATID AB)",
-            keys: ["anti hydatid ab", "215003", "hydatid antibodies", "echinococcus ab"],
-            getNotes: () => `لا يشترط الصيام، وتُسحب عينة دم وريدي للكشف عن الأجسام المضادة لمرض الأكياس المائية في الكبد أو الرئة.`
-        },
-        {
-            name: "أجسام مضادة للكيراتين (ANTI KERATIN AB [AKA])",
-            keys: ["anti keratin ab", "aka", "201024", "anti keratin"],
-            getNotes: () => `لا يشترط الصيام، ويُعد من المؤشرات المناعية الدقيقة والمبكرة لتشخيص الروماتويد المفصلي (Rheumatoid Arthritis).`
-        },
-        {
-            name: "أجسام مضادة لميكروسومات الكبد والكلى (ANTI LKM [LIVER KIDNEY MICROSOME])",
-            keys: ["anti lkm", "201002", "liver kidney microsome", "anti-lkm-1"],
-            getNotes: () => `لا يشترط الصيام التام، ويُطلب لتشخيص التهاب الكبد المناعي الذاتي من النوع الثاني (Autoimmune Hepatitis Type 2).`
-        },
-        {
-            name: "معيار أجسام مضادة لميكروسومات الكبد والكلى (ANTI LKM TITER)",
-            keys: ["anti lkm titer", "2040014", "lkm titer", "anti lkm (liver kidney microsome) titer"],
-            getNotes: () => `لا يشترط الصيام، ويقيس عيار/تركيز الأجسام المضادة بالتخفيف لمتابعة نشاط مرض التهاب الكبد المناعي والاستجابة للعلاج.`
-        },
-        {
-            name: "أجسام مضادة للميالين قليل التغصن (Anti MOG [anti-Myelin oligodendrocyte Glycoprotein])",
-            keys: ["anti mog", "anti-myelin oligodendrocyte glycoprotein", "labservice16", "mog ab"],
-            getNotes: () => `لا يشترط الصيام التام، ويُطلب لتشخيص أمراض الجهاز العصبي المركزي المزيلة للميالين والتهاب العصب البصري، ويفضل أخذ العينة قبل بدء العلاج بالكورتيزون أو تبديل البلازما.`
-        },
-        {
-            name: "هرمون مخزون المبيض (ANTI MULLARIAN HORMONE [A.M.H])",
-            keys: ["anti mullarian hormone", "a.m.h", "amh", "210008", "مخزون المبيض"],
-            getNotes: () => `لا يشترط الصيام، ويمكن سحب العينة في أي يوم من أيام الدورة الشهرية حيث يتميز بثبات مستواه طوال الشهر مقارنة بباقي الهرمونات الأنثوية.`
-        },
-        {
-            name: "أجسام مضادة للميلوبيروكسيداز (ANTI MYELOPEROXIDASE ANTIBODIES - MPO / p-ANCA)",
-            keys: ["anti myeloperoxidase antibodies", "mpo", "p-anca", "3535816"],
-            getNotes: () => `لا يشترط الصيام التام، ويُطلب لتشخيص التهابات الأوعية الدموية المناعية (Vasculitis) والتهاب كبيبات الكلى.`
-        },
-        {
-            name: "أجسام مضادة عصبية (ANTI NEURONAL AB)",
-            keys: ["anti neuronal ab", "anti neuronal", "201025", "neuronal antibodies"],
-            getNotes: () => `لا يشترط الصيام، ويُطلب لتقييم المتلازمات العصبية المصاحبة للأورام (Paraneoplastic Neurological Syndromes)، وتُرسل العينة مفصولة ومبردة فوراً.`
-        },
-        {
-            name: "أجسام مضادة لمستقبلات NMDA (ANTI- NMDA RECEPTOR)",
-            keys: ["anti- nmda receptor", "anti nmda", "nmda receptor", "209003"],
-            getNotes: () => `تجمع عينة دم وريدي أو سائل نخاع شوكي (CSF) حسب طلب الطبيب لتشخيص التهاب الدماغ المناعي الذاتي (Autoimmune Encephalitis)، وتُحفظ مبردة.`
-        },
-        {
-            name: "أجسام مضادة للصفائح الدموية (ANTI PLATELET ANTIBODIES)",
-            keys: ["anti platelet antibodies", "209074", "platelet antibodies", "itp"],
-            getNotes: () => `لا يشترط الصيام، ويُطلب لتشخيص أسباب نقص الصفائح المناعي (ITP) وتكسر الصفائح الدموية.`
-        },
-        {
-            name: "أجسام مضادة لبروتيناز 3 (ANTI PROTEINASE III AB - PR3 / c-ANCA)",
-            keys: ["anti proteinase iii ab", "pr3", "c-anca", "3535817", "proteinase 3"],
-            getNotes: () => `لا يشترط الصيام التام، ويُعد المؤشر المناعي الأساسي لتشخيص مرض ورم غرانولوماتوزي ويغنري (Granulomatosis with Polyangiitis).`
-        },
-        {
-            name: "أجسام مضادة للريتيكولين (ANTI RETICULIN AB - ARA)",
-            keys: ["anti reticulin ab", "ara", "201026", "reticulin antibodies"],
-            getNotes: () => `يشترط عدم البدء في حمية خالية من الجلوتين قبل السحب، حيث يُستخدم لتشخيص حساسية القمح (مرض السيلياك) والتهاب الجلد الحلئي.`
-        },
-        {
-            name: "معيار الأجسام المضادة لـ عامل ريسوس (ANTI RH AB TITER - Indirect Coombs)",
-            keys: ["anti rh ab titer", "anti rh titer", "indirect coombs", "201027", "ار اتش"],
-            getNotes: () => `خاص بالسيدات الحوامل ذوات فصيلة الدم السالبة (Rh Negative) عند زواجهن من زوج موجب، لا يشترط الصيام، ويُسجل العمر الجنيني ومواعيد إبرة الـ Anti-D بدقة.`
-        },
         {
             name: "سكر صائم (Fasting Blood Sugar - FBS)",
-            keys: ["fbs", "fasting blood", "sugar fasting", "سكر صائم"],
-            getNotes: () => `صيام تام من 6 إلى 8 ساعات كاملة (مسموح بشرب الماء النقي فقط، وممنوع التدخين أو المنبهات)).`
+            test: (t) => /\b(fbs|fasting blood sugar)\b|sugar\s*fasting/i.test(t),
+            getNotes: () => `صيام تام من 6 إلى 8 ساعات كاملة (مسموح بشرب الماء النقي فقط، وممنوع التدخين أو المنبهات).`
         },
         {
             name: "سكر عشوائي (Random Blood Sugar - RBS)",
-            keys: ["random", "rbs", "سكر عشوائي"],
+            test: (t) => /random\s*b|rbs|random.*sugar/i.test(t),
             getNotes: () => `لا يشترط الصيام، ويتم سحب العينة في أي وقت خلال اليوم.`
         },
         {
             name: "صورة دم كاملة (CBC / Complete Blood Picture)",
-            keys: ["cbc", "blood picture", "blood count", "صورة دم"],
+            test: (t) => /\bcbc\b|blood\s*picture|complete\s*blood/i.test(t),
             getNotes: () => `لا يشترط الصيام التام، ويفضل شرب كميات كافية من الماء وتجنب الإجهاد البدني العنيف قبل السحب.`
         },
         {
             name: "وظائف كبد (Albumin / SGOT / AST / SGPT / ALT)",
-            keys: ["albumin", "ast", "sgot", "alt", "sgpt", "كبد"],
+            test: (t) => /\b(albumin|ast|sgot|alt|sgpt)\b/i.test(t),
             getNotes: () => `لا يشترط الصيام التام، ويفضل تجنب الأطعمة الدسمة في الوجبة السابقة للسحب مباشرة.`
         },
         {
-            name: "وظائف كلى (Creatinine / BUN / Blood Urea)",
-            keys: ["creatinine", "creatinen", "bun", "urea", "كلى"],
+            name: "وظائف كلى (Creatinine / BUN / Blood Urea Nitrogen)",
+            test: (t) => /creatinin|creat\b|\bbun\b|blood\s*urea/i.test(t),
             getNotes: () => `يفضل صيام خفيف من 4 إلى 6 ساعات، مع تجنب تناول كميات مفرطة من اللحوم الحمراء قبل الفحص بيوم.`
         },
         {
             name: "أملاح ومعادن الدم (Sodium / Potassium)",
-            keys: ["sodium", "potassium", "املاح"],
+            test: (t) => /potassium|sodium/i.test(t),
             getNotes: () => `لا يشترط الصيام، ولكن يلزم إبلاغ المعمل بأي أدوية ضغط أو مدرات بول تؤخذ بانتظام.`
         },
         {
             name: "حديد السيرم (Serum Iron)",
-            keys: ["serum iron", "iron"],
+            test: (t) => /serum\s*iron|\biron\b/i.test(t),
             getNotes: () => `صيام من 8 إلى 12 ساعة، ويسحب صباحاً في وقت مبكر لتجنب التغير اليومي لمستوى الحديد.`
         },
         {
             name: "تحليل بول كامل (Complete Urine Analysis)",
-            keys: ["urine", "complete urine", "بول"],
+            test: (t) => /urine|urinalysis/i.test(t),
             getNotes: () => `عينة بول صباحية أولى، مع غسل المنطقة وتطهيرها بالماء، وأخذ عينة منتصف البول (Mid-stream) في عبوة معقمة.`
         },
         {
             name: "تحليل براز (Stool Analysis)",
-            keys: ["stool", "براز"],
+            test: (t) => /stool/i.test(t),
             getNotes: () => `تجمع العينة في الوعاء المعقم بدون اختلاطها بماء المرحاض أو البول، وتُسلم للمختبر خلال ساعتين كحد أقصى.`
         },
         {
             name: "سونار البطن والحوض (Ultrasound Abdomen & Pelvis)",
-            keys: ["ultrasound", "ultrasondg", "abdomen", "pevis", "pelvis", "سونار"],
+            test: (t) => /ultrasound|ultrason|abdomen.*pelvis|pelvis/i.test(t),
             getNotes: () => `صيام 6 إلى 8 ساعات عن الأكل لفحص البطن، وشرب لتر ماء وحبس البول لامتلاء المثانة لفحص الحوض.`
+        },
+        {
+            name: "إنزيم محول للأنجيوتنسين (ACE)",
+            test: (t) => /\bace\b|angiotensin/i.test(t),
+            getNotes: () => `صيام 8 إلى 12 ساعة (مسموح بالماء فقط). يمنع تناول أدوية الضغط المثبطة للإنزيم (ACE inhibitors) إلا بعد مراجعة الطبيب.`
+        },
+
+        // --- تحاليل DotCare (صفحة 3) ---
+        {
+            name: "فوسفاتيز حمضي (ACID PHOSPHATASE) [204003]",
+            test: (t) => /acid\s*phosphatase|204003|\bacp\b/i.test(t),
+            getNotes: () => `يفضل صيام خفيف (4 إلى 6 ساعات). يمنع فحص أو تدليك البروستاتا قبل التحليل بـ 48 ساعة.`
+        },
+        {
+            name: "هرمون موجه قشر الكظر مسائي (ACTH P.M) [2100010]",
+            test: (t) => /acth\s*\(?p\.?m\)?|2100010/i.test(t),
+            getNotes: () => `يسحب مساءً بدقة (4 - 8 مساءً) مع راحة تامة للمريض لمدة 30 دقيقة قبل السحب وتُنقل العينة مثلجة فوراً.`
+        },
+        {
+            name: "هرمون موجه قشر الكظر صباحي (ACTH MORNING) [210004]",
+            test: (t) => /acth\s*morning|acth\s*\(?a\.?m\)?|210004/i.test(t),
+            getNotes: () => `يسحب صباحاً بدقة (8 - 10 صباحاً) مع راحة تامة 30 دقيقة وتجنب التوتر، وتُنقل العينة مثلجة فوراً.`
+        },
+        {
+            name: "مقاومة البروتين سي المنشط (ACTIVATED PROTEIN C RESISTANCE) [209001]",
+            test: (t) => /activated\s*protein\s*c|apcr|209001/i.test(t),
+            getNotes: () => `لا يشترط الصيام التام. يمنع أخذ أدوية السيولة ومضادات التخثر إلا بتعليمات الطبيب المعالج.`
+        },
+        {
+            name: "أداليموماب والأجسام المضادة (Adalimumab Trough level) [Root LABService290]",
+            test: (t) => /adalimumab|humira/i.test(t),
+            getNotes: () => `تسحب العينة قبل موعد جرعة الدواء التالية مباشرة (Trough Level) لقياس أدنى تركيز في الدم بدقة.`
+        },
+        {
+            name: "إنزيم أدامتس (ADAMTS13) [3035710]",
+            test: (t) => /adamts/i.test(t),
+            getNotes: () => `يفضل أخذ العينة قبل البدء في نقل البلازما أو أخذ العلاجات المثبطة للمناعة.`
+        },
+        {
+            name: "أدينوزين ديميناز (ADENOSINE-DEAMINASE) [204004]",
+            test: (t) => /adenosine-?deaminase|\bada\b|204004/i.test(t),
+            getNotes: () => `لا يشترط الصيام. ترسل العينة للمختبر فوراً وتفصل سريعاً لتفادي تحلل الإنزيم.`
+        },
+        {
+            name: "الهرمون المانع لإدرار البول (ADH) [210005]",
+            test: (t) => /\badh\b|antidiuretic|vasopressin|210005/i.test(t),
+            getNotes: () => `صيام 8 إلى 12 ساعة مع الامتناع عن التدخين والمنبهات، وتحديد كمية السوائل حسب إرشادات الطبيب.`
+        },
+        {
+            name: "أجسام مضادة لقشرة الكظر (Adrenal cortical antibodies) [Root LABService289]",
+            test: (t) => /adrenal\s*cortical/i.test(t),
+            getNotes: () => `لا يشترط الصيام التام، ويفضل تجنب الأطعمة الدسمة قبل السحب بعدة ساعات.`
+        },
+
+        // --- تحاليل DotCare (صفحة 4) ---
+        {
+            name: "زلال سائل الاستسقاء (ALBUMIN IN ASCITIC FLUID) [Root LABService77]",
+            test: (t) => /albumin\s*in\s*ascitic/i.test(t),
+            getNotes: () => `عينة سائل استسقاء تجمع بمعرفة الطبيب المعالج، وترسل فوراً للمختبر مع عينة دم متزامنة لحساب SAAG.`
+        },
+        {
+            name: "زلال البول النوعي (ALBUMIN IN URINE [QUALITATIVE]) [221003]",
+            test: (t) => /albumin\s*in\s*urine|221003/i.test(t),
+            getNotes: () => `عينة بول صباحية أولى نظيفة، مع تجنب التمارين الرياضية الشاقة قبل التحليل.`
+        },
+        {
+            name: "نسبة الزلال إلى الجلوبيولين (A/G RATIO) [2040018]",
+            test: (t) => /albumin\/\s*globulin|a\/g\s*ratio|2040018/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويفضل تجنب الوجبات الدسمة قبل سحب الدم مباشرة.`
+        },
+        {
+            name: "نسبة الزلال إلى الكرياتينين في البول (ALBUMIN/CREATININE RATIO) [221004]",
+            test: (t) => /albumin\/creatinine|\bacr\b|microalbumin|221004/i.test(t),
+            getNotes: () => `عينة بول صباحية أولى نظيفة، وتجنب الإجهاد العضلي الشديد قبل الفحص بـ 24 ساعة.`
+        },
+        {
+            name: "كحول الدم (ALCOHOL IN BLOOD) [207001]",
+            test: (t) => /alcohol\s*in\s*blood|207001/i.test(t),
+            getNotes: () => `تنبيه هام: يمنع تطهير موضع الوخز بمسحات الكحول الطبية ويستبدل بمطهر آخر كاليود أو الماء والصابون.`
+        },
+        {
+            name: "كحول اللعاب (ALCOHOL IN SALIVA) [207002]",
+            test: (t) => /alcohol\s*in\s*saliva|207002/i.test(t),
+            getNotes: () => `الامتناع عن الأكل، الشرب، التدخين، وغسول الفم لمدة 15 إلى 20 دقيقة قبل أخذ المسحة.`
+        },
+        {
+            name: "كحول البول (Alcohol in urine) [Root LABService15]",
+            test: (t) => /alcohol\s*in\s*urine/i.test(t),
+            getNotes: () => `عينة بول نظيفة في عبوة محكمة الإغلاق لمنع تطاير الكحول، وتسلم للمختبر فوراً.`
+        },
+        {
+            name: "إنزيم ألدولاز (ALDOLASE) [204006]",
+            test: (t) => /aldolase|204006/i.test(t),
+            getNotes: () => `صيام 8 إلى 12 ساعة، مع الراحة التامة وتجنب أي مجهود عضلي أو تمارين قبل السحب.`
+        },
+
+        // --- تحاليل DotCare (صفحة 5) ---
+        {
+            name: "هرمون ألدوستيرون (ALDOSTERONE) [210006]",
+            test: (t) => /aldosterone|210006/i.test(t),
+            getNotes: () => `الراحة التامة والجلوس بهدوء لمدة 30 دقيقة قبل السحب، والالتزام بتعليمات الطبيب بخصوص أدوية الضغط ومستوى الملح.`
+        },
+        {
+            name: "نسبة الألدوستيرون إلى الرينين (ALDOSTERONE RENIN RATIO) [204007]",
+            test: (t) => /aldosterone\s*renin|\barr\b|204007/i.test(t),
+            getNotes: () => `تسحب صباحاً بعد الاستيقاظ بساعتين على الأقل، مع الجلوس في راحة تامة لمدة 20 دقيقة قبل الفحص.`
+        },
+        {
+            name: "فوسفاتاز قلوي (ALKALINE PHOSPHATASE - ALP) [204008]",
+            test: (t) => /alkaline\s*phosphatase|\balp\b|204008/i.test(t),
+            getNotes: () => `صيام من 8 إلى 10 ساعات ويفضل سحبه صباحاً لتفادي ارتفاع الإنزيم بعد الوجبات الدسمة.`
+        },
+        {
+            name: "ألفا جلوكوزيداز في السائل المنوي (ALPHA GLUCOSIDASE) [Root LABService80]",
+            test: (t) => /alpha\s*glucosidase/i.test(t),
+            getNotes: () => `عينة سائل منوي في عبوة معقمة، يشترط الامتناع عن الجماع والقذف لمدة 3 إلى 5 أيام قبل التحليل.`
+        },
+        {
+            name: "ألفا 1 ميكروجلوبيولين (ALPHA-1 MICROGLOBULIN) [204010]",
+            test: (t) => /alpha-?1\s*microglobulin|204010/i.test(t),
+            getNotes: () => `لا يشترط الصيام لعينة الدم، أما في عينة البول فتؤخذ عينة صباحية أولى نظيفة.`
+        },
+        {
+            name: "ألفا 1 أنتي تريبسين (ALPHA-1-ANTITRYPSIN) [204009]",
+            test: (t) => /alpha-?1-?antitrypsin|\baat\b|204009/i.test(t),
+            getNotes: () => `يفضل صيام 4 إلى 8 ساعات، وتجنب إجرائه أثناء نزلات البرد والالتهابات الحادة.`
+        },
+        {
+            name: "ألفا فيتو بروتين (ALPHA-FETOPROTEIN [AFP]) [220001]",
+            test: (t) => /alpha-?fetoprotein|\bafp\b|220001/i.test(t),
+            getNotes: () => `لا يشترط الصيام. إذا كان لمتابعة الحمل فيجب تسجيل العمر الجنيني وتاريخ آخر دورة بدقة.`
+        },
+        {
+            name: "مستوى الألومنيوم في الدم (ALUMINIUM LEVEL) [Root LABService81]",
+            test: (t) => /aluminium|aluminum/i.test(t),
+            getNotes: () => `يمنع تناول أدوية الحموضة المحتوية على ألومنيوم قبل الفحص بيوم، وتسحب في أنبوبة خالية من المعادن.`
+        },
+        {
+            name: "مخطط الأحماض الأمينية بالبلازما (AMINOGRAM [PLASMA]) [Root LABService82]",
+            test: (t) => /aminogram\s*\(?plasma\)?/i.test(t),
+            getNotes: () => `صيام من 8 إلى 12 ساعة للبالغين، وتسحب على أنبوبة هيبارين وتفصل وتجمد فوراً.`
+        },
+
+        // --- تحاليل DotCare (صفحة 6) ---
+        {
+            name: "مخطط الأحماض الأمينية بالبول (AMINOGRAM [URINE]) [Root LABService83]",
+            test: (t) => /aminogram\s*\(?urine\)?/i.test(t),
+            getNotes: () => `عينة بول صباحية أولى أو تجميع 24 ساعة حسب إرشادات الطبيب، وتحفظ مبردة ومثلجة فوراً.`
+        },
+        {
+            name: "حمض أمينوليفيولينيك في البول (aminolevulinic acid in urine) [4535762]",
+            test: (t) => /aminolevulinic|delta\s*ala|4535762/i.test(t),
+            getNotes: () => `تجميع بول 24 ساعة في وعاء معتم، مع ضرورة حماية العبوة من الضوء وحفظها باردة طوال فترة التجميع.`
+        },
+        {
+            name: "أمونيا الدم (AMMONIA) [204011]",
+            test: (t) => /ammonia|204011/i.test(t),
+            getNotes: () => `صيام 6 إلى 8 ساعات، والامتناع التام عن التدخين قبل السحب بيوم، وتسحب على ثلج وتفصل خلال 15 دقيقة.`
+        },
+        {
+            name: "إنزيم أميليز (AMYLASE) [204012]",
+            test: (t) => /amylase|204012/i.test(t),
+            getNotes: () => `صيام من 2 إلى 4 ساعات عن الطعام، وتجنب المسكنات الأفيونية والكحول قبل الفحص.`
+        },
+        {
+            name: "بروتين أميلويد أ (AMYLOID A PROTEIN) [204013]",
+            test: (t) => /amyloid\s*a|204013/i.test(t),
+            getNotes: () => `لا يشترط الصيام التام، ويفضل صيام خفيف (4 ساعات) لتجنب عكارة السيرم.`
+        },
+        {
+            name: "أميلويد بيتا 1-42 (Amyloid beta 1-42) [3435759]",
+            test: (t) => /amyloid\s*beta|3435759/i.test(t),
+            getNotes: () => `عينة سائل نخاع شوكي (CSF) تجمع بمعرفة الطبيب المختص في أنابيب بولي بروبيلين وتجمد فوراً.`
+        },
+        {
+            name: "لطخة مناعية للأجسام المضادة للنواة (ANA immunoplot) [Root LABService275]",
+            test: (t) => /ana\s*immunoplot|ana\s*microblot/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويفضل سحب العينة صباحاً وتجنب العينات شديدة الدهون.`
+        },
+        {
+            name: "هرمون أندروستينيديون (ANDROSTENEDIONE) [210007]",
+            test: (t) => /androstenedione|210007/i.test(t),
+            getNotes: () => `يفضل سحبه صباحاً. للسيدات: يفضل إجراؤه في الأسبوع الأول بعد بدء الدورة الشهرية.`
+        },
+        {
+            name: "فجوة الأنيونات (ANION GAP) [204014]",
+            test: (t) => /anion\s*gap|204014/i.test(t),
+            getNotes: () => `تحليل حسابي يُستنتج من قياس أملاح الدم (الصوديوم والبوتاسيوم والكلورايد والبيكربونات).`
+        },
+
+        // --- تحاليل DotCare (صفحة 7) ---
+        {
+            name: "أجسام مضادة للكارديوليبين IgG [201015]",
+            test: (t) => /cardiolipin\s*igg|201015/i.test(t),
+            getNotes: () => `لا يشترط الصيام التام، ويفضل إجراؤه قبل بدء مضادات التخثر أو إبلاغ المختبر بها.`
+        },
+        {
+            name: "أجسام مضادة للكارديوليبين IgM [201016]",
+            test: (t) => /cardiolipin\s*igm|201016/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويطلب لتقييم متلازمة أضداد الفوسفوليبيد والتجلطات الحديثة.`
+        },
+        {
+            name: "أجسام مضادة للإنسولين (ANTI - INSULIN AB) [201017]",
+            test: (t) => /anti\s*-?\s*insulin|201017/i.test(t),
+            getNotes: () => `صيام 8 إلى 10 ساعات، ويجب أخذ العينة قبل أخذ جرعة الإنسولين الصباحية وإبلاغ المعمل بنوعه.`
+        },
+        {
+            name: "أجسام مضادة جو-1 (ANTI - JO- 1) [201018]",
+            test: (t) => /anti\s*-?\s*jo-?\s*1|201018/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويطلب لتشخيص التهابات العضلات المناعية وأمراض النسيج الضام.`
+        },
+        {
+            name: "أجسام مضادة SSA / Ro [201019]",
+            test: (t) => /anti\s*-?\s*ssa|anti-?ro|201019/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويطلب لتشخيص متلازمة شوغرن والذئبة الحمراء.`
+        },
+        {
+            name: "أجسام مضادة SSB / La [201020]",
+            test: (t) => /anti\s*-?\s*ssb|anti-?la|201020/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويجرى بالتزامن مع Anti-SSA لتأكيد تشخيص الأمراض المناعية الذاتية.`
+        },
+        {
+            name: "أجسام مضادة للأنيكسين V نوع IgG [Root LABService302]",
+            test: (t) => /annexin\s*v\s*igg/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويفضل تسجيل التاريخ الدوائي لأدوية السيولة وفحوصات الإجهاض المتكرر.`
+        },
+        {
+            name: "أجسام مضادة للأنيكسين V نوع IgM [Root LABService303]",
+            test: (t) => /annexin\s*v\s*igm/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويقيس الأجسام المضادة المرتبطة بقابلية التخثر وفقدان الحمل المبكر.`
+        },
+        {
+            name: "أجسام مضادة للغشاء القاعدي (ANTI BASMENT MEMBRANE) [2040011]",
+            test: (t) => /basment\s*membrane|\bgbm\b|2040011/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويفضل أخذ العينة قبل البدء في جلسات الغسيل الكلوي أو فصل البلازما.`
+        },
+        {
+            name: "أجسام مضادة للبلهارسيا (ANTI BILHARZIAL ANTIBODIES) [215001]",
+            test: (t) => /bilharzial|bilharzia|215001/i.test(t),
+            getNotes: () => `لا يشترط الصيام التام، وتجمع عينة دم وريدي للكشف عن الأجسام المضادة لعدوى البلهارسيا.`
+        },
+
+        // --- تحاليل DotCare (صفحة 8) ---
+        {
+            name: "أجسام مضادة للسنترومير (ANTI CENTROMERE AB) [201022]",
+            test: (t) => /centromere|201022/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويطلب لتشخيص متلازمة كرست (CREST) والتصلب الجلدي المناعي.`
+        },
+        {
+            name: "أجسام مضادة للديسموجلين 1 (Anti D3G1 Ab IgG) [Root LABService305]",
+            test: (t) => /d3g1|dsg1|desmoglein\s*1/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويستخدم لتشخيص ومتابعة أمراض الفقاع الجلدي المناعي.`
+        },
+        {
+            name: "أجسام مضادة للديسموجلين 3 (Anti D3G3 Ab) [Root LABService304]",
+            test: (t) => /d3g3|dsg3|desmoglein\s*3/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويطلب لتشخيص مرض الفقاع الشائع وإصابات الأغشية المخاطية.`
+        },
+        {
+            name: "أجسام مضادة للجليادين منزوع الأميد IgA [2110002]",
+            test: (t) => /dgp\s*iga|2110002/i.test(t),
+            getNotes: () => `يشترط عدم التوقف عن تناول الجلوتين قبل التحليل، لتفادي السلبية الكاذبة في تشخيص السيلياك.`
+        },
+        {
+            name: "أجسام مضادة للجليادين منزوع الأميد IgG [2110001]",
+            test: (t) => /dgp\s*igg|2110001/i.test(t),
+            getNotes: () => `يشترط استمرار المريض في نظامه الغذائي الطبيعي المحتوي على الجلوتين قبل السحب.`
+        },
+        {
+            name: "معيار الأجسام المضادة للحمض النووي مزدوج السلسلة (ANTI dsDNA TITER) [2040012]",
+            test: (t) => /double\s*stranaded|dsdna|2040012/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويطلب لمتابعة نشاط مرض الذئبة الحمراء والتهاب الكلى الذئبي.`
+        },
+        {
+            name: "نشاط مضاد العامل العاشر (ANTI- FACTOR X A ACTIVITY) [209002]",
+            test: (t) => /factor\s*x\s*a|factor\s*xa|209002/i.test(t),
+            getNotes: () => `توقيت حرج: يجب سحب العينة بعد 4 ساعات بالضبط من حقنة الهيبارين مع تسجيل توقيت الجرعة بدقة.`
+        },
+        {
+            name: "أجسام مضادة للفاشيولا (ANTI FASCIOLA AB) [215002]",
+            test: (t) => /fasciola|215002/i.test(t),
+            getNotes: () => `لا يشترط الصيام التام، ويفحص وجود الأجسام المضادة لدودة الكبد في الدم.`
+        },
+
+        // --- تحاليل DotCare (صفحة 9) ---
+        {
+            name: "أجسام مضادة لـ GAD في السائل النخاعي (Anti GAD in CSF) [2533610]",
+            test: (t) => /gad\s*in\s*csf|2533610/i.test(t),
+            getNotes: () => `عينة سائل نخاع شوكي (CSF) تسحب تحت تعقيم طبي كامل وتُنقل مثلجة للمختبر فوراً.`
+        },
+        {
+            name: "أجسام مضادة للخلايا الجدارية للمعدة (ANTI GASTRIC PARIETAL AB) [201023]",
+            test: (t) => /gastric\s*parietal|\bapca\b|201023/i.test(t),
+            getNotes: () => `لا يشترط الصيام التام، ويفضل صيام خفيف (4 ساعات). يطلب لتشخيص الأنيميا الخبيثة ونقص B12.`
+        },
+        {
+            name: "أجسام مضادة لنازع كربوكسيل حمض الجلوتاميك (Anti-GAD) [204015]",
+            test: (t) => /glutamic\s*acid\s*decarboxylase|anti-?gad|204015/i.test(t),
+            getNotes: () => `صيام 8 إلى 10 ساعات، ويطلب لتشخيص السكري المناعي من النوع الأول وسكري LADA.`
+        },
+        {
+            name: "أجسام مضادة للمكورات المشوكة / الأكياس المائية (ANTI HYDATID AB) [215003]",
+            test: (t) => /hydatid|echinococcus|215003/i.test(t),
+            getNotes: () => `لا يشترط الصيام، وتفحص الأجسام المضادة لأكياس الطفيليات المائية في الكبد والرئة.`
+        },
+        {
+            name: "أجسام مضادة للكيراتين (ANTI KERATIN AB [AKA]) [201024]",
+            test: (t) => /keratin\s*ab|\baka\b|201024/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويعد مؤشراً دقيقاً لتشخيص الروماتويد المفصلي المبكر.`
+        },
+        {
+            name: "أجسام مضادة لميكروسومات الكبد والكلى (ANTI LKM) [201002]",
+            test: (t) => /anti\s*lkm|liver\s*kidney\s*microsome|201002/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويطلب لتشخيص التهاب الكبد المناعي الذاتي من النوع الثاني.`
+        },
+        {
+            name: "معيار أجسام مضادة لميكروسومات الكبد والكلى (ANTI LKM TITER) [2040014]",
+            test: (t) => /lkm\s*titer|2040014/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويقيس عيار الأجسام المضادة بالتخفيف لمتابعة نشاط المرض الكبدي.`
+        },
+
+        // --- تحاليل DotCare (صفحة 10) ---
+        {
+            name: "أجسام مضادة للميالين قليل التغصن (Anti MOG) [Root LABService16]",
+            test: (t) => /anti\s*mog|myelin\s*oligodendrocyte/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويفضل أخذ العينة قبل البدء في العلاج بالكورتيزون لتشخيص أمراض العصب البصري.`
+        },
+        {
+            name: "هرمون مخزون المبيض (ANTI MULLARIAN HORMONE [AMH]) [210008]",
+            test: (t) => /mullarian|\bamh\b|210008/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويمكن إجراؤه في أي يوم من أيام الدورة الشهرية دون التقيد بوقت محدد.`
+        },
+        {
+            name: "أجسام مضادة للميلوبيروكسيداز (MPO / p-ANCA) [3535816]",
+            test: (t) => /myeloperoxidase|\bmpo\b|p-?anca|3535816/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويطلب لتشخيص التهابات الأوعية الدموية المناعية والتهاب كبيبات الكلى.`
+        },
+        {
+            name: "أجسام مضادة عصبية (ANTI NEURONAL AB) [201025]",
+            test: (t) => /anti\s*neuronal|201025/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويطلب لتقييم المتلازمات العصبية المصاحبة للأورام.`
+        },
+        {
+            name: "أجسام مضادة لمستقبلات NMDA [209003]",
+            test: (t) => /nmda|209003/i.test(t),
+            getNotes: () => `تجمع عينة دم أو سائل نخاع شوكي (CSF) لتشخيص التهاب الدماغ المناعي الذاتي، وتُحفظ مبردة.`
+        },
+        {
+            name: "أجسام مضادة للصفائح الدموية (ANTI PLATELET ANTIBODIES) [209074]",
+            test: (t) => /platelet\s*antibodies|209074/i.test(t),
+            getNotes: () => `لا يشترط الصيام، ويطلب لتشخيص أسباب تكسر ونقص الصفائح الدموية المناعي (ITP).`
+        },
+        {
+            name: "أجسام مضادة لبروتيناز 3 (PR3 / c-ANCA) [3535817]",
+            test: (t) => /proteinase\s*iii|proteinase\s*3|\bpr3\b|c-?anca|3535817/i.test(t),
+            getNotes: () => `لا يشترط الصيام، وهو الفحص الأساسي لتشخيص ورم غرانولوماتوزي ويغنري الوعائي.`
+        },
+        {
+            name: "أجسام مضادة للريتيكولين (ANTI RETICULIN AB) [201026]",
+            test: (t) => /reticulin|201026/i.test(t),
+            getNotes: () => `يشترط عدم اتباع حمية خالية من الجلوتين قبل السحب، لتشخيص السيلياك وحساسية القمح بدقة.`
+        },
+        {
+            name: "معيار الأجسام المضادة لعامل ريسوس (ANTI RH AB TITER) [201027]",
+            test: (t) => /anti\s*rh\b|rh\s*titer|indirect\s*coombs|201027/i.test(t),
+            getNotes: () => `خاص بالحوامل ذوات الفصيلة السالبة، لا يشترط الصيام، ويُسجل العمر الجنيني ومواعيد حقنة Anti-D بدقة.`
         }
     ];
 
@@ -645,29 +602,21 @@
         const reader = new FileReader();
         reader.onload = (e) => {
             rawImg.onload = () => {
-                // إذا كانت الصورة رأسية مثل صورتك، يدورها المحرك 90 درجة تلقائياً لتصبح أفقية ومقروءة
-                currentAngle = rawImg.height > rawImg.width ? 90 : 0;
-                applyCanvasTransform();
+                document.getElementById('imagePreview').src = rawImg.src;
                 document.getElementById('previewContainer').style.display = 'block';
-                startScan();
+                performSmartMultiScan();
             };
             rawImg.src = e.target.result;
         };
         reader.readAsDataURL(input.files[0]);
     }
 
-    function rotateManual(deg) {
-        currentAngle = (currentAngle + deg) % 360;
-        applyCanvasTransform();
-        startScan();
-    }
-
-    function applyCanvasTransform() {
-        const cvs = document.getElementById('procCanvas');
+    function generateProcessedCanvas(angle) {
+        const cvs = document.createElement('canvas');
         const ctx = cvs.getContext('2d');
-        const rad = (currentAngle * Math.PI) / 180;
+        const rad = (angle * Math.PI) / 180;
 
-        if (Math.abs(currentAngle) === 90 || Math.abs(currentAngle) === 270) {
+        if (angle === 90 || angle === 270) {
             cvs.width = rawImg.height;
             cvs.height = rawImg.width;
         } else {
@@ -675,52 +624,61 @@
             cvs.height = rawImg.height;
         }
 
-        ctx.clearRect(0, 0, cvs.width, cvs.height);
         ctx.save();
         ctx.translate(cvs.width / 2, cvs.height / 2);
         ctx.rotate(rad);
         ctx.drawImage(rawImg, -rawImg.width / 2, -rawImg.height / 2);
         ctx.restore();
 
-        document.getElementById('imagePreview').src = cvs.toDataURL();
+        const imgData = ctx.getImageData(0, 0, cvs.width, cvs.height);
+        const d = imgData.data;
+        for (let i = 0; i < d.length; i += 4) {
+            const v = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114);
+            const contrast = v > 135 ? 255 : 0;
+            d[i] = d[i+1] = d[i+2] = contrast;
+        }
+        ctx.putImageData(imgData, 0, 0);
+        return cvs;
     }
 
-    function startScan() {
-        const cvs = document.getElementById('procCanvas');
+    async function performSmartMultiScan() {
         const overlay = document.getElementById('loadingOverlay');
         const msg = document.getElementById('loadingMsg');
-
         overlay.style.display = 'flex';
-        msg.innerText = 'جارٍ فحص الروشتة وقراءة التحاليل...';
 
-        Tesseract.recognize(cvs, 'eng', {
-            logger: m => {
-                if (m.status === 'recognizing text') {
-                    msg.innerText = `جارٍ القراءة: ${Math.round(m.progress * 100)}%`;
-                }
+        let accumulatedText = "";
+        const angles = [0, 90, 180, 270];
+
+        try {
+            for (let i = 0; i < angles.length; i++) {
+                msg.innerText = `فحص الاتجاه (${i + 1} من 4)...`;
+                const canvasVariant = generateProcessedCanvas(angles[i]);
+
+                const result = await Tesseract.recognize(canvasVariant, 'eng', {
+                    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ()/.-+'
+                });
+
+                accumulatedText += " " + result.data.text;
+
+                let detectedCount = medicalRules.filter(r => r.test(accumulatedText)).length;
+                if (detectedCount >= 4) break;
             }
-        }).then(({ data: { text } }) => {
+
             overlay.style.display = 'none';
-            parseAndShow(text);
-        }).catch(() => {
+            parseAndShow(accumulatedText);
+        } catch (e) {
             overlay.style.display = 'none';
-            alert('يرجى التأكد من وضوح الصورة وإعادة المحاولة.');
-        });
+            alert('حدث خطأ أثناء فحص الصورة.');
+        }
     }
 
-    function parseAndShow(extractedText) {
-        const lower = extractedText.toLowerCase();
+    function parseAndShow(text) {
         const isFemale = document.querySelector('input[name="gender"]:checked').value === 'أنثى';
         const listDiv = document.getElementById('resultsList');
         const sec = document.getElementById('resultsSection');
-
         listDiv.innerHTML = '';
-        let found = [];
 
-        medicalRules.forEach(rule => {
-            const matched = rule.keys.some(k => lower.includes(k));
-            if (matched) found.push(rule);
-        });
+        let found = medicalRules.filter(rule => rule.test(text));
 
         if (found.length > 0) {
             found.forEach(item => {
@@ -736,8 +694,8 @@
         } else {
             listDiv.innerHTML = `
                 <div class="test-result-card" style="border-right-color: #f59e0b;">
-                    <h4>لم تظهر التحاليل بدقة كافية</h4>
-                    <p>اضغطي زر (تدوير يمين 🔄) ثم (إعادة الفحص) لمطابقة اتجاه السطور أفقياً مع الكاميرا.</p>
+                    <h4>تعذر تمييز الأسماء بدقة</h4>
+                    <p>يرجى تصوير الروشتة في إضاءة واضحة والتأكد من وضوح الكلمات.</p>
                 </div>
             `;
         }
