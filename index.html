@@ -217,12 +217,12 @@
                              *يجب أن تصل العينة الي المعمل بعد ساعتين كحد أقصى من الانتهاء من التجميع.`
         },
           {
-            name: " أمراض مناعية(ANTI DOUBLE STRANADED DNA )",
+            name: " أمراض مناعية للذائبة (ANTI DOUBLE STRANADED DNA )",
             keys: ["A DS D N A", "ANTI DOUBLE STRANADED DNA TITER", "Anti DNA (IF)", "Anti DNA-Ds","تحليل الذئبة","الامراض المناعية للذئبة"],
             getNotes: () => `ليس لها شروط والاستلام خلال اسبوع `
         },
          {
-            name: " أمراض مناعية (Antinuclear Antibody)",
+            name: " أمراض مناعية للروماتويد (Antinuclear Antibody)",
             keys: ["ANA immunoplot / microblot", "A.N.A", "تحليل امراض مناعية للروماتويد", "Antinuclear Antibody","ANA ( by ELISA )","ANA (by IF)","NA Profile-ENA Profile"],
             getNotes: () => `ليس لها شروط والاستلام خلال اسبوع`
         },
@@ -235,6 +235,358 @@
             name: " أمراض مناعية (ASMA ( Anti-smooth muscle antibody ))",
             keys: ["ASMA ( Anti-smooth muscle antibody )", "A.SM.A"],
             getNotes: () => `ليس لها شروط والاستلام من 5ايام لاسبوع`
+        },
+         {
+            name: "أمراض الرئة والمناعة ( ACE (ANGIOTENSIN CONVERTING ENZYME) )",
+            keys: ["ACE", "S-ACE", "ANGIOTENSIN CONVERTING ENZYME", ""],
+            getNotes: () => `ليس لها شروط والاستلام من 3 ل5 ايام`
+        },
+         {
+            name: " هرمون الغدة الجار الكظرية(ACTH (AM)/ACTH (P.M))",
+            keys: ["ACTH MORNING", "ACTH(AM)", "acth(am)","ACTH (P.M)","ACTH (PM)","acth(pm)"],
+            getNotes: () => `يتم سحب عينة الدم من الساعة الثامنة صباحا او مساءا (يجب ألا يتعدى السحب الساعة التاسعة) ولا يشترط صيام.`
+        },
+        {
+            name: "فوسفاتيز حمضي (ACID PHOSPHATASE)",
+            keys: ["acid phosphatase", "204003", "acp"],
+            getNotes: () => `يفضل صيام خفيف (4 إلى 6 ساعات). يمنع لمس أو فحص البروستاتا قبل التحليل بـ 48 ساعة لتجنب الارتفاع الكاذب للإنزيم.`
+        },
+        {
+            name: "مقاومة البروتين سي المنشط (ACTIVATED PROTEIN C RESISTANCE)",
+            keys: ["activated protein c resistance", "apcr", "209001", "apc resistance"],
+            getNotes: () => `لا يشترط الصيام التام. يشترط عدم تناول أدوية السيولة ومضادات التخثر (مثل الهيبارين أو الوارفارين) إلا بتعليمات الطبيب المعالج.
+                             مطلوب الشكوى والسن وبالنسبة للسيدات هل يوجد حمل ؟
+                             هل يوجد عالج سيولة واسم العالج ؟ `
+        },
+        {
+            name: "أداليموماب والأجسام المضادة (Adalimumab Trough level and Anti Adalimumab Antibody level)",
+            keys: ["adalimumab", "anti adalimumab", "labservice290", "humira level"],
+            getNotes: () => `تسحب العينة قبل موعد جرعة الدواء التالية مباشرة (Trough Level) لتحديد تركيز الدواء الأدنى في الدم بدقة.`
+        },
+        {
+            name: "فحص نشاط إنزيم أدامتس (ADAMTS13)",
+            keys: ["adamts13", "adamts 13", "3035710", "adamts"],
+            getNotes: () => `يفضل أخذ العينة قبل البدء في نقل بلازما الدم أو العلاجات المثبطة للمناعة لتفادي النتائج غير الدقيقة.`
+        },
+        {
+            name: "إنزيم أدينوزين ديميناز (ADENOSINE-DEAMINASE)",
+            keys: ["adenosine-deaminase", "ada", "204004", "adenosine deaminase"],
+            getNotes: () => `لا يشترط الصيام. سواء كانت العينة دماً أو سوائل جسمية، يجب نقلها فوراً للمختبر وفصلها سريعاً.`
+        },
+        {
+            name: "الهرمون المانع لإدرار البول (ADH)",
+            keys: ["adh", "210005", "antidiuretic hormone", "vasopressin"],
+            getNotes: () => `صيام من 8 إلى 12 ساعة مع الامتناع عن شرب السوائل وفق تعليمات الطبيب، وتجنب التدخين والكافيين قبل الفحص بيوم.`
+        },
+        {
+            name: "أجسام مضادة لقشرة الكظر (Adrenal cortical antibodies)",
+            keys: ["adrenal cortical antibodies", "labservice289", "aca", "adrenal antibodies"],
+            getNotes: () => `لا يشترط الصيام التام، ولكن يفضل الامتناع عن الأطعمة الدسمة قبل السحب بعدة ساعات.`
+        },
+        {
+            name: "زلال الدم (ALBUMIN)",
+            keys: ["albumin", "204005", "البومين", "البيومين"],
+            getNotes: () => `لا يشترط الصيام التام، ويفضل تجنب الأغذية عالية الدسم والبروتين قبل إجراء الفحص مباشرة.`
+        },
+        {
+            name: "زلال سائل الاستسقاء (ALBUMIN IN ASCITIC FLUID)",
+            keys: ["albumin in ascitic fluid", "ascitic fluid albumin", "labservice77"],
+            getNotes: () => `عينة سائل استسقاء بريتوني يتم سحبها تحت إشراف طبي معقم، وتُرسل للمختبر فوراً مع عينة دم متزامنة لحساب نسبة SAAG.`
+        },
+        {
+            name: "زلال البول النوعي (ALBUMIN IN URINE [QUALITATIVE])",
+            keys: ["albumin in urine", "urine albumin", "221003", "زلال البول"],
+            getNotes: () => `يفضل عينة بول صباحية أولى بعد تنظيف وتطهير المنطقة بالماء، مع تجنب التمارين الرياضية الشاقة قبل الفحص.`
+        },
+        {
+            name: "نسبة الزلال إلى الجلوبيولين (ALBUMIN/ GLOBULIN RATIO [A/G])",
+            keys: ["albumin/ globulin ratio", "a/g ratio", "2040018", "a/g"],
+            getNotes: () => `لا يشترط الصيام التام، ويفضل الامتناع عن الوجبات الغنية بالدهون والبروتينات الكثيفة قبل سحب الدم مباشرة.`
+        },
+        {
+            name: "نسبة الزلال إلى الكرياتينين في البول (ALBUMIN/CREATININE RATIO - ACR)",
+            keys: ["albumin/creatinine ratio", "acr", "221004", "microalbumin"],
+            getNotes: () => `عينة بول صباحية عشوائية نظيفة (يفضل الأولى)، ويجب تجنب بذل مجهود عضلي عنيف قبل الفحص بـ 24 ساعة، وتجنب الفحص في حالات الحمى الشديدة.`
+        },
+        {
+            name: "كحول الدم (ALCOHOL IN BLOOD)",
+            keys: ["alcohol in blood", "blood alcohol", "207001", "etoh"],
+            getNotes: () => `سحب عينة دم وريدي، وتنبيه صارم: يُمنع استخدام الكحول أو مسحات الإيثانول لتطهير الجلد قبل وخز الإبرة ويُستبدل بمطهر آخر كاليود أو الماء والصابون.`
+        },
+        {
+            name: "كحول اللعاب (ALCOHOL IN SALIVA)",
+            keys: ["alcohol in saliva", "207002", "saliva alcohol"],
+            getNotes: () => `الامتناع التام عن تناول أي طعام، شراب، تدخين، أو استخدام غسول فموي لمدة لا تقل عن 15 إلى 20 دقيقة قبل أخذ المسحة/العينة.`
+        },
+        {
+            name: "كحول البول (Alcohol in urine)",
+            keys: ["alcohol in urine", "urine alcohol", "labservice15"],
+            getNotes: () => `عينة بول نظيفة في عبوة معقمة محكمة الإغلاق لمنع تطاير المركبات، وتُسلّم للمختبر فوراً.`
+        },
+        {
+            name: "إنزيم ألدولاز (ALDOLASE)",
+            keys: ["aldolase", "204006"],
+            getNotes: () => `صيام من 8 إلى 12 ساعة، مع الراحة التامة والامتناع عن ممارسة أي أنشطة أو تمارين عضلية شاقة قبل السحب لتفادي ارتفاع الإنزيم كاذباً.`
+        },
+        {
+            name: "هرمون ألدوستيرون (ALDOSTERONE)",
+            keys: ["aldosterone", "210006", "الدوستيرون"],
+            getNotes: () => `يلزم الاستلقاء أو الجلوس بهدوء لمدة 30 دقيقة قبل السحب مباشرة، مع الالتزام بتعليمات الطبيب بخصوص كمية الملح في الطعام وأدوية الضغط المدرة للبول.`
+        },
+        {
+            name: "نسبة الألدوستيرون إلى الرينين (ALDOSTERONE RENIN RATIO - ARR)",
+            keys: ["aldosterone renin ratio", "arr", "204007"],
+            getNotes: () => `تسحب العينة صباحاً بعد الاستيقاظ بساعتين على الأقل، ويشترط الجلوس في حالة راحة لمدة 15 إلى 30 دقيقة قبل السحب، ومراجعة أدوية الضغط مع الطبيب المعالج.`
+        },
+        {
+            name: "إنزيم الفوسفاتاز القلوي (ALKALINE PHOSPHATASE - ALP)",
+            keys: ["alkaline phosphatase", "alp", "204008"],
+            getNotes: () => `صيام من 8 إلى 10 ساعات ويفضل سحبه صباحاً لتجنب تغير مستويات الإنزيم بتأثير الوجبات الغنية بالدهون.`
+        },
+        {
+            name: "إنزيم ألفا جلوكوزيداز في السائل المنوي (ALPHA GLUCOSIDASE IN SEMINAL FLUID)",
+            keys: ["alpha glucosidase", "seminal fluid", "labservice80"],
+            getNotes: () => `عينة سائل منوي في عبوة معقمة، يشترط الامتناع عن الجماع والقذف لمدة من 3 إلى 5 أيام قبل التحليل، وتُسلم للمختبر خلال 30 إلى 60 دقيقة.`
+        },
+        {
+            name: "ألفا 1 ميكروجلوبيولين (ALPHA-1 MICROGLOBULIN)",
+            keys: ["alpha-1 microglobulin", "204010", "alpha 1 microglobulin"],
+            getNotes: () => `لا يشترط الصيام التام إذا كانت عينة دم، أما في عينات البول فتؤخذ عينة صباحية أولى نظيفة أو تجميع بول 24 ساعة حسب طلب الطبيب.`
+        },
+        {
+            name: "ألفا 1 أنتي تريبسين (ALPHA-1-ANTITRYPSIN)",
+            keys: ["alpha-1-antitrypsin", "aat", "204009", "alpha 1 antitrypsin"],
+            getNotes: () => `يفضل صيام من 4 إلى 8 ساعات، وتجنب إجرائه أثناء وجود التهابات حادة أو نزلات برد شديدة لأن مستواه يرتفع كرد فعل مناعي مؤقت.`
+        },
+        {
+            name: "ألفا فيتو بروتين (ALPHA-FETOPROTEIN [AFP])",
+            keys: ["alpha-fetoprotein", "afp", "220001", "alpha fetoprotein"],
+            getNotes: () => `لا يشترط الصيام التام، وإذا كان الفحص لمتابعة الحمل فيجب تسجيل العمر الجنيني وتاريخ آخر دورة شهرية بدقة.`
+        },
+        {
+            name: "مستوى الألومنيوم في الدم (ALUMINIUM LEVEL)",
+            keys: ["aluminium level", "aluminum", "labservice81"],
+            getNotes: () => `يمنع تناول مضادات الحموضة المحتوية على الألومنيوم قبل التحليل بـ 24 ساعة، وتُسحب العينة بأنبوبة مخصصة خالية من المعادن لتفادي التلوث.`
+        },
+        {
+            name: "مخطط الأحماض الأمينية بالبلازما (AMINOGRAM [PLASMA])",
+            keys: ["aminogram", "amino acids", "labservice82", "plasma amino acids"],
+            getNotes: () => `صيام تام من 8 إلى 12 ساعة (للبالغين) أو 4 ساعات (للرضع)، مع سحب العينة على أنبوبة هيبارين وفصل البلازما وتجميدها فوراً.`
+        },
+        {
+            name: "مخطط الأحماض الأمينية بالبول (AMINOGRAM [URINE])",
+            keys: ["aminogram (urine)", "aminogram urine", "labservice83"],
+            getNotes: () => `عينة بول صباحية أولى نظيفة أو تجميع بول 24 ساعة وفق طلب الطبيب، وتُحفظ العينة مثلجة أو مجمدة حتى تسليمها للمختبر فوراً.`
+        },
+        {
+            name: "حمض أمينوليفيولينيك في البول (aminolevulinic acid in urine - ALA)",
+            keys: ["aminolevulinic acid in urine", "4535762", "ala in urine", "delta ala"],
+            getNotes: () => `تجميع بول 24 ساعة في وعاء معتم، مع ضرورة حفظ الوعاء في مكان مظلم وبارد تماماً وحمايته من التعرض للضوء طوال فترة التجميع.`
+        },
+        {
+            name: "أمونيا الدم (AMMONIA)",
+            keys: ["ammonia", "204011", "امونيا"],
+            getNotes: () => `صيام من 6 إلى 8 ساعات، والامتناع التام عن التدخين قبل السحب بيوم، وتسحب العينة على أنبوبة EDTA مثلجة فوراً وتُفصل خلال 15 دقيقة.`
+        },
+        {
+            name: "إنزيم أميليز (AMYLASE)",
+            keys: ["amylase", "204012", "اميليز"],
+            getNotes: () => `يفضل صيام من 2 إلى 4 ساعات عن الطعام، وتجنب تناول الكحول ومسكنات الألم الأفيونية قبل الفحص لتفادي ارتفاع الإنزيم كاذباً.`
+        },
+        {
+            name: "بروتين أميلويد أ (AMYLOID A PROTEIN - SAA)",
+            keys: ["amyloid a protein", "204013", "saa protein", "amyloid a"],
+            getNotes: () => `لا يشترط الصيام التام، لكن يفضل صيام خفيف (4 ساعات) عن الأطعمة الدسمة، وهو مؤشر لالتهابات الجسم الحادة.`
+        },
+        {
+            name: "أميلويد بيتا 1-42 (Amyloid beta 1-42)",
+            keys: ["amyloid beta 1-42", "3435759", "amyloid beta"],
+            getNotes: () => `عينة سائل نخاع شوكي (CSF) تجمع تحت إشراف طبي معقم في أنابيب بولي بروبيلين خاصة منخفضة الارتباط، وتُجمد فوراً.`
+        },
+        {
+            name: "لطخة مناعية للأجسام المضادة للنواة (ANA immunoplot / microblot)",
+            keys: ["ana immunoplot", "ana microblot", "labservice275", "ana blot", "ana profile"],
+            getNotes: () => `لا يشترط الصيام، ويفضل سحب العينة صباحاً وتجنب أخذ عينات دم متحللة أو شديدة الدسامة لضمان دقة الشرائح المناعية.`
+        },
+        {
+            name: "هرمون أندروستينيديون (ANDROSTENEDIONE)",
+            keys: ["androstenedione", "210007", "androstendione"],
+            getNotes: () => `يفضل سحب العينة صباحاً (حيث يصل لأعلى مستوياته). للسيدات: يفضل إجراؤه في الأسبوع الأول بعد بدء الدورة الشهرية أو حسب توجيهات الطبيب المعالج.`
+        },
+        {
+            name: "فجوة الأنيونات (ANION GAP)",
+            keys: ["anion gap", "204014", "فجوة الانيونات"],
+            getNotes: () => `تحليل حسابي يُستنتج من قياس أملاح الدم (الصوديوم، البوتاسيوم، الكلورايد والبيكربونات)؛ يفضل صيام خفيف من 4 إلى 6 ساعات.`
+        },
+        {
+            name: "أجسام مضادة للكارديوليبين نوع IgG (ANTI - CARDIOLIPIN IGG)",
+            keys: ["anti - cardiolipin igg", "anti cardiolipin igg", "acl igg", "201015"],
+            getNotes: () => `لا يشترط الصيام التام، ويفضل إجراؤه قبل بدء أدوية السيولة أو استشارة الطبيب المعالج إن كان يُجرى لمتابعة حالات الإجهاض المتكرر أو التجلطات.`
+        },
+        {
+            name: "أجسام مضادة للكارديوليبين نوع IgM (ANTI - CARDIOLIPIN IGM)",
+            keys: ["anti - cardiolipin igm", "anti cardiolipin igm", "acl igm", "201016"],
+            getNotes: () => `لا يشترط الصيام، ويُطلب عادة مع الـ IgG لتقييم متلازمة أضداد الفوسفوليبيد الحادة وتجلطات الدم.`
+        },
+        {
+            name: "أجسام مضادة للإنسولين (ANTI - INSULIN AB)",
+            keys: ["anti - insulin ab", "anti insulin", "insulin antibodies", "201017"],
+            getNotes: () => `صيام من 8 إلى 10 ساعات، ويجب أخذ العينة قبل أخذ جرعة الإنسولين الصباحية، مع إبلاغ المختبر بنوع الإنسولين المستخدم ومدة العلاج.`
+        },
+        {
+            name: "أجسام مضادة جو-1 (ANTI - JO- 1)",
+            keys: ["anti - jo- 1", "anti jo 1", "anti jo-1", "jo 1", "201018"],
+            getNotes: () => `لا يشترط الصيام، ويُستخدم لتشخيص التهابات العضلات المناعية وأمراض النسيج الضام، ويفضل تجنب العينات شديدة الدهون.`
+        },
+        {
+            name: "أجسام مضادة SSA / Ro (ANTI - SSA [RO] AB)",
+            keys: ["anti - ssa (ro) ab", "anti ssa", "anti-ro", "ssa ab", "201019"],
+            getNotes: () => `لا يشترط الصيام، ويُطلب لتشخيص متلازمة شوغرن والذئبة الحمراء، وله أهمية خاصة لمتابعة الحوامل لتفادي متلازمة الذئبة الوليدية.`
+        },
+        {
+            name: "أجسام مضادة SSB / La (ANTI - SSB [LA] AB)",
+            keys: ["anti - ssb ( la ) ab", "anti ssb", "anti-la", "ssb ab", "201020"],
+            getNotes: () => `لا يشترط الصيام، ويُجرى بالتزامن مع فحص Anti-SSA لتأكيد تشخيص الأمراض المناعية الذاتية المرتبطة بجفاف العين والفم.`
+        },
+        {
+            name: "أجسام مضادة للأنيكسين V نوع IgG (Anti annexin V IgG)",
+            keys: ["anti annexin v igg", "annexin v igg", "labservice302"],
+            getNotes: () => `لا يشترط الصيام، ويفضل تسجيل التاريخ الدوائي لأدوية السيولة؛ يُطلب ضمن فحوصات التجلط والإجهاض المناعي.`
+        },
+        {
+            name: "أجسام مضادة للأنيكسين V نوع IgM (Anti annexin V IgM)",
+            keys: ["anti annexin v igm", "annexin v igm", "labservice303"],
+            getNotes: () => `لا يشترط الصيام، ويقيس الأجسام المضادة الحديثة أو النشطة المرتبطة بقابلية التخثر وفقدان الحمل المبكر.`
+        },
+        {
+            name: "أجسام مضادة للغشاء القاعدي (ANTI BASMENT MEMBRANE ABS - GBM)",
+            keys: ["anti basment membrane abs", "anti gbm", "gbm antibodies", "2040011"],
+            getNotes: () => `لا يشترط الصيام، ويفضل أخذ العينة قبل البدء في جلسات الغسيل الكلوي أو تنقية البلازما (Plasmapheresis) إن وُجدت.`
+        },
+        {
+            name: "أجسام مضادة للبلهارسيا (ANTI BILHARZIAL ANTIBODIES [IHA])",
+            keys: ["anti bilharzial antibodies", "bilharzial antibodies", "iha bilharzia", "215001"],
+            getNotes: () => `لا يشترط الصيام التام، وتُسحب عينة دم وريدي على أنبوبة سيرم عادية للكشف عن الأجسام المضادة لبلهارسيا البول أو المستقيم.`
+        },
+        {
+            name: "أجسام مضادة للسنترومير (ANTI CENTROMERE AB)",
+            keys: ["anti centromere ab", "anti centromere", "aca antibodies", "201022"],
+            getNotes: () => `لا يشترط الصيام التام، ويُستخدم لتشخيص متلازمة كرست (CREST syndrome) والتصلب الجلدي المحدود.`
+        },
+        {
+            name: "أجسام مضادة للديسموجلين 1 نوع IgG (Anti D3G1 Ab IgG)",
+            keys: ["anti d3g1 ab igg", "anti dsg1", "desmoglein 1", "labservice305"],
+            getNotes: () => `لا يشترط الصيام، ويُستخدم لتشخيص ومتابعة أمراض الفقاع الجلدي المناعية (Pemphigus foliaceus).`
+        },
+        {
+            name: "أجسام مضادة للديسموجلين 3 (Anti D3G3 Ab)",
+            keys: ["anti d3g3 ab", "anti dsg3", "desmoglein 3", "labservice304"],
+            getNotes: () => `لا يشترط الصيام، ويُطلب لتشخيص مرض الفقاع الشائع (Pemphigus vulgaris) وإصابات الأغشية المخاطية.`
+        },
+        {
+            name: "أجسام مضادة لببتيد الجليادين منزوع الأميد نوع IgA (Anti DGP IgA)",
+            keys: ["anti dgp iga", "dgp iga", "2110002", "deamidated gliadin iga"],
+            getNotes: () => `يشترط عدم اتباع حمية خالية من الجلوتين قبل الفحص، بل يجب الاستمرار في تناول الأطعمة المحتوية على القمح والجلوتين لضمان دقة تشخيص حساسية القمح (السيلياك).`
+        },
+        {
+            name: "أجسام مضادة لببتيد الجليادين منزوع الأميد نوع IgG (Anti DGP IgG)",
+            keys: ["anti dgp igg", "dgp igg", "2110001", "deamidated gliadin igg"],
+            getNotes: () => `يشترط استمرار المريض في تناول الجلوتين قبل التحليل، ويفيد بشكل خاص للمرضى الذين يعانون من نقص المناعة الوراثي في IgA.`
+        },
+        {
+            name: "معيار الأجسام المضادة للحمض النووي مزدوج السلسلة (ANTI DOUBLE STRANADED DNA TITER)",
+            keys: ["anti double stranaded dna titer", "anti dsdna titer", "dsdna titer", "2040012"],
+            getNotes: () => `لا يشترط الصيام، ويُطلب لتشخيص ومتابعة نشاط مرض الذئبة الحمراء (SLE) والتهاب الكلى الذئبي.`
+        },
+        {
+            name: "نشاط مضاد العامل العاشر (ANTI- FACTOR X A ACTIVITY)",
+            keys: ["anti- factor x a activity", "anti factor xa", "anti xa", "209002"],
+            getNotes: () => `توقيت السحب حرج جداً: يجب سحب العينة بعد مرور 4 ساعات بالضبط من أخذ حقنة الهيبارين منخفض الوزن الجزيئي (LMWH)، مع تدوين نوع الجرعة وموعدها بدقة.`
+        },
+        {
+            name: "أجسام مضادة للفاشيولا / دودة الكبد (ANTI FASCIOLA AB)",
+            keys: ["anti fasciola ab", "fasciola antibodies", "215002", "فاشيولا"],
+            getNotes: () => `لا يشترط الصيام التام، وتُسحب عينة دم وريدي للكشف عن الأجسام المضادة لعدوى ديدان الفاشيولا الكبدية.`
+        },
+        {
+            name: "أجسام مضادة لإنزيم GAD في السائل النخاعي (Anti GAD in CSF)",
+            keys: ["anti gad in csf", "2533610", "gad in csf", "gad csf"],
+            getNotes: () => `عينة سائل نخاع شوكي (CSF) يتم سحبها تحت إشراف طبي معقم، وتُرسل مثلجة للمختبر فوراً لتقييم متلازمة الشخص المتصلب والتهابات الدماغ المناعية.`
+        },
+        {
+            name: "أجسام مضادة للخلايا الجدارية للمعدة (ANTI GASTRIC PARIETAL AB - APCA)",
+            keys: ["anti gastric parietal ab", "201023", "apca", "anti parietal"],
+            getNotes: () => `لا يشترط الصيام التام، ويفضل صيام خفيف (4 ساعات). يُطلب لتشخيص التهاب المعدة المناعي والأنيميا الخبيثة (Pernicious Anemia) ونقص فيتامين B12.`
+        },
+        {
+            name: "أجسام مضادة لنازع كربوكسيل حمض الجلوتاميك (ANTI GLUTAMIC ACID DECARBOXYLASE - Anti-GAD)",
+            keys: ["anti glutamic acid decarboxylase", "204015", "anti-gad", "anti gad 65"],
+            getNotes: () => `صيام من 8 إلى 10 ساعات، ويُستخدم لتشخيص السكري المناعي الذاتي من النوع الأول (Type 1 Diabetes) والسكري الكامن لدى البالغين (LADA).`
+        },
+        {
+            name: "أجسام مضادة للمكورات المشوكة / الأكياس المائية (ANTI HYDATID AB)",
+            keys: ["anti hydatid ab", "215003", "hydatid antibodies", "echinococcus ab"],
+            getNotes: () => `لا يشترط الصيام، وتُسحب عينة دم وريدي للكشف عن الأجسام المضادة لمرض الأكياس المائية في الكبد أو الرئة.`
+        },
+        {
+            name: "أجسام مضادة للكيراتين (ANTI KERATIN AB [AKA])",
+            keys: ["anti keratin ab", "aka", "201024", "anti keratin"],
+            getNotes: () => `لا يشترط الصيام، ويُعد من المؤشرات المناعية الدقيقة والمبكرة لتشخيص الروماتويد المفصلي (Rheumatoid Arthritis).`
+        },
+        {
+            name: "أجسام مضادة لميكروسومات الكبد والكلى (ANTI LKM [LIVER KIDNEY MICROSOME])",
+            keys: ["anti lkm", "201002", "liver kidney microsome", "anti-lkm-1"],
+            getNotes: () => `لا يشترط الصيام التام، ويُطلب لتشخيص التهاب الكبد المناعي الذاتي من النوع الثاني (Autoimmune Hepatitis Type 2).`
+        },
+        {
+            name: "معيار أجسام مضادة لميكروسومات الكبد والكلى (ANTI LKM TITER)",
+            keys: ["anti lkm titer", "2040014", "lkm titer", "anti lkm (liver kidney microsome) titer"],
+            getNotes: () => `لا يشترط الصيام، ويقيس عيار/تركيز الأجسام المضادة بالتخفيف لمتابعة نشاط مرض التهاب الكبد المناعي والاستجابة للعلاج.`
+        },
+        {
+            name: "أجسام مضادة للميالين قليل التغصن (Anti MOG [anti-Myelin oligodendrocyte Glycoprotein])",
+            keys: ["anti mog", "anti-myelin oligodendrocyte glycoprotein", "labservice16", "mog ab"],
+            getNotes: () => `لا يشترط الصيام التام، ويُطلب لتشخيص أمراض الجهاز العصبي المركزي المزيلة للميالين والتهاب العصب البصري، ويفضل أخذ العينة قبل بدء العلاج بالكورتيزون أو تبديل البلازما.`
+        },
+        {
+            name: "هرمون مخزون المبيض (ANTI MULLARIAN HORMONE [A.M.H])",
+            keys: ["anti mullarian hormone", "a.m.h", "amh", "210008", "مخزون المبيض"],
+            getNotes: () => `لا يشترط الصيام، ويمكن سحب العينة في أي يوم من أيام الدورة الشهرية حيث يتميز بثبات مستواه طوال الشهر مقارنة بباقي الهرمونات الأنثوية.`
+        },
+        {
+            name: "أجسام مضادة للميلوبيروكسيداز (ANTI MYELOPEROXIDASE ANTIBODIES - MPO / p-ANCA)",
+            keys: ["anti myeloperoxidase antibodies", "mpo", "p-anca", "3535816"],
+            getNotes: () => `لا يشترط الصيام التام، ويُطلب لتشخيص التهابات الأوعية الدموية المناعية (Vasculitis) والتهاب كبيبات الكلى.`
+        },
+        {
+            name: "أجسام مضادة عصبية (ANTI NEURONAL AB)",
+            keys: ["anti neuronal ab", "anti neuronal", "201025", "neuronal antibodies"],
+            getNotes: () => `لا يشترط الصيام، ويُطلب لتقييم المتلازمات العصبية المصاحبة للأورام (Paraneoplastic Neurological Syndromes)، وتُرسل العينة مفصولة ومبردة فوراً.`
+        },
+        {
+            name: "أجسام مضادة لمستقبلات NMDA (ANTI- NMDA RECEPTOR)",
+            keys: ["anti- nmda receptor", "anti nmda", "nmda receptor", "209003"],
+            getNotes: () => `تجمع عينة دم وريدي أو سائل نخاع شوكي (CSF) حسب طلب الطبيب لتشخيص التهاب الدماغ المناعي الذاتي (Autoimmune Encephalitis)، وتُحفظ مبردة.`
+        },
+        {
+            name: "أجسام مضادة للصفائح الدموية (ANTI PLATELET ANTIBODIES)",
+            keys: ["anti platelet antibodies", "209074", "platelet antibodies", "itp"],
+            getNotes: () => `لا يشترط الصيام، ويُطلب لتشخيص أسباب نقص الصفائح المناعي (ITP) وتكسر الصفائح الدموية.`
+        },
+        {
+            name: "أجسام مضادة لبروتيناز 3 (ANTI PROTEINASE III AB - PR3 / c-ANCA)",
+            keys: ["anti proteinase iii ab", "pr3", "c-anca", "3535817", "proteinase 3"],
+            getNotes: () => `لا يشترط الصيام التام، ويُعد المؤشر المناعي الأساسي لتشخيص مرض ورم غرانولوماتوزي ويغنري (Granulomatosis with Polyangiitis).`
+        },
+        {
+            name: "أجسام مضادة للريتيكولين (ANTI RETICULIN AB - ARA)",
+            keys: ["anti reticulin ab", "ara", "201026", "reticulin antibodies"],
+            getNotes: () => `يشترط عدم البدء في حمية خالية من الجلوتين قبل السحب، حيث يُستخدم لتشخيص حساسية القمح (مرض السيلياك) والتهاب الجلد الحلئي.`
+        },
+        {
+            name: "معيار الأجسام المضادة لـ عامل ريسوس (ANTI RH AB TITER - Indirect Coombs)",
+            keys: ["anti rh ab titer", "anti rh titer", "indirect coombs", "201027", "ار اتش"],
+            getNotes: () => `خاص بالسيدات الحوامل ذوات فصيلة الدم السالبة (Rh Negative) عند زواجهن من زوج موجب، لا يشترط الصيام، ويُسجل العمر الجنيني ومواعيد إبرة الـ Anti-D بدقة.`
         },
         {
             name: "سكر صائم (Fasting Blood Sugar - FBS)",
